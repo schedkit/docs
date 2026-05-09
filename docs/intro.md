@@ -28,4 +28,4 @@ We assume you're comfortable on a Linux command line, you've used containers (an
 
 ## Where to file things
 
-Documentation issues belong in the [schedkit-docs repo](https://github.com/schedkit/schedkit-docs/issues). Tool issues belong in the relevant project repo: [schedctl](https://github.com/schedkit/schedctl/issues) for the CLI, [sked](https://github.com/schedkit/sked/issues) for the operator. If you're not sure which it is, open it against schedctl and we'll move it if needed.
+Documentation issues belong in the [docs repo](https://github.com/schedkit/docs/issues). Tool issues belong in the relevant project repo: [schedctl](https://github.com/schedkit/schedctl/issues) for the CLI, [sked](https://github.com/schedkit/sked/issues) for the operator. If you're not sure which it is, open it against schedctl and we'll move it if needed.

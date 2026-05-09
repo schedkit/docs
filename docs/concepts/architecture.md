@@ -49,7 +49,7 @@ There is no per-node sked component. The kubelet runs the scheduler pod; the pod
 | [schedkit/schedctl](https://github.com/schedkit/schedctl) | Host | Go | CLI, container runtime client, scheduler lifecycle, cosign verification, kernel preflight |
 | [schedkit/sked](https://github.com/schedkit/sked) | Cluster | Go | kubebuilder operator: `SchedExt` CRD, controller that creates a privileged DaemonSet per resource |
 | [schedkit/plumbing](https://github.com/schedkit/plumbing) | — | JSON | Catalog manifest (mapping short names to image URIs) consumed by `schedctl list`/`run`/`versions` |
-| [schedkit/schedkit-docs](https://github.com/schedkit/schedkit-docs) | — | TypeScript | This site |
+| [schedkit/docs](https://github.com/schedkit/docs) | — | TypeScript | This site |
 
 The two code repositories are independently versioned and currently independent in their wire-level concerns: sked does not import schedctl as a Go module, nor does it shell out to it. Aligning their lifecycle and trust models is a deliberate longer-term direction; today they coexist rather than co-operate.
 

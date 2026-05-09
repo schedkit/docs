@@ -1,6 +1,6 @@
-# schedkit-docs
+# schedkit/docs
 
-Source for the schedkit documentation site, served at https://schedkit.github.io/.
+Source for the schedkit documentation site, served at https://schedkit.io/.
 
 The site is built with [Docusaurus 3](https://docusaurus.io/) and deployed to GitHub Pages by the workflow under `.github/workflows/deploy.yml` on every push to `main`.
 
@@ -51,4 +51,4 @@ A few things we try to keep consistent across the docs:
 
 ## License
 
-The documentation content is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The site code (config, components, styles) is Apache-2.0, matching the rest of schedkit.
+Apache 2.0, matching the rest of schedkit. See [`LICENSE`](./LICENSE).
