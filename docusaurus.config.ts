@@ -7,12 +7,11 @@ const config: Config = {
   tagline: 'OCI-packaged sched_ext schedulers, from your laptop to a cluster',
   favicon: 'img/favicon.ico',
 
-  url: 'https://schedkit.github.io',
+  url: 'https://schedkit.io',
   baseUrl: '/',
 
   organizationName: 'schedkit',
-  projectName: 'schedkit.github.io',
-  deploymentBranch: 'gh-pages',
+  projectName: 'docs',
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
@@ -29,7 +28,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/schedkit/schedkit-docs/tree/main/',
+          editUrl: 'https://github.com/schedkit/docs/tree/main/',
         },
         blog: false,
         theme: {
