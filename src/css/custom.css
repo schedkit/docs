@@ -1,0 +1,38 @@
+/**
+ * Light customisations on top of the default Docusaurus theme.
+ * Keep this file small. Heavy theming belongs in a swizzled component.
+ */
+
+:root {
+  --ifm-color-primary: #2174b6;
+  --ifm-color-primary-dark: #1e69a4;
+  --ifm-color-primary-darker: #1c639b;
+  --ifm-color-primary-darkest: #175280;
+  --ifm-color-primary-light: #257fc4;
+  --ifm-color-primary-lighter: #2885cb;
+  --ifm-color-primary-lightest: #4296d9;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #69ace2;
+  --ifm-color-primary-dark: #4799dc;
+  --ifm-color-primary-darker: #358fd9;
+  --ifm-color-primary-darkest: #237ec3;
+  --ifm-color-primary-light: #8bc0e9;
+  --ifm-color-primary-lighter: #a0cbed;
+  --ifm-color-primary-lightest: #c7e0f4;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* A bit more breathing room between paragraphs in long-form pages. */
+.markdown > p {
+  margin-bottom: 1.1rem;
+}
+
+/* Slightly tighter inline code so it doesn't feel pasted on. */
+code {
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+}
