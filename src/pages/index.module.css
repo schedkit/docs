@@ -1,32 +1,571 @@
+/**
+ * Homepage styles. Consumed only by src/pages/index.tsx — CSS-module scoped.
+ * Shared primitives (sk-grid-bg, sk-eyebrow) live in src/css/custom.css.
+ */
+
 .hero {
-  padding: 4rem 0;
-  text-align: center;
-  background: linear-gradient(135deg, var(--ifm-color-primary-darkest) 0%, var(--ifm-color-primary) 100%);
-  color: white;
+  position: relative;
+  overflow: hidden;
+  padding: 5.5rem 0 5rem;
+  border-bottom: 1px solid var(--sk-line);
+  background-color: var(--sk-bg-sunken);
 }
 
-.buttons {
+/* Soft radial wash behind the hero copy. */
+.heroGlow {
+  position: absolute;
+  inset: -40% -10% auto -10%;
+  height: 120%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      55% 55% at 22% 32%,
+      var(--sk-glow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 45% at 78% 18%,
+      rgba(158, 206, 106, 0.07) 0%,
+      transparent 70%
+    );
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 90%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 90%);
+}
+
+.heroInner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 4rem;
+  align-items: center;
+}
+
+.heroCopy {
+  min-width: 0;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1.5rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  border: 1px solid var(--sk-line);
+  border-radius: 999px;
+  background: var(--sk-surface-2);
+  font-family: var(--sk-font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Pulsing "host is ready" indicator. */
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sk-term);
+  box-shadow: 0 0 0 0 var(--sk-term-dim);
+  animation: statusPulse 2.6s ease-out infinite;
+}
+
+@keyframes statusPulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--sk-term-dim);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.heroTitle {
+  margin: 0 0 1rem;
+  font-family: var(--sk-font-mono);
+  font-size: clamp(2.9rem, 6vw, 4.35rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ifm-heading-color);
+}
+
+.heroTagline {
+  margin: 0 0 1.25rem;
+  max-width: 34ch;
+  font-size: 1.28rem;
+  line-height: 1.4;
+  letter-spacing: -0.018em;
+  color: var(--ifm-font-color-dark);
+  text-wrap: balance;
+}
+
+.heroBlurb {
+  margin: 0 0 2rem;
+  max-width: 52ch;
+  font-size: 1.01rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.heroActions :global(.button) {
+  font-size: 0.95rem;
+  padding-inline: 1.35rem;
+}
+
+.heroMeta {
+  margin: 0;
+  font-family: var(--sk-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.heroMeta a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--sk-line-strong);
+  padding-bottom: 1px;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.heroMeta a:hover {
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+/* ---- Terminal card ---- */
+
+.heroPanel {
+  min-width: 0;
+}
+
+.terminal {
+  border: 1px solid var(--sk-line-strong);
+  border-radius: var(--ifm-global-radius);
+  background: var(--sk-code-bg);
+  overflow: hidden;
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.55);
+}
+
+.terminalBar {
   display: flex;
   align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--sk-line);
+  background: var(--sk-bg-sunken);
+}
+
+.terminalDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sk-line-strong);
+}
+
+.terminalTitle {
+  margin-left: 0.5rem;
+  font-family: var(--sk-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.terminalBody {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-family: var(--sk-font-mono);
+  font-size: 0.755rem;
+  line-height: 1.72;
+}
+
+.terminalBody code {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
+  color: var(--ifm-font-color-base);
+}
+
+/* Command line: prompt glyph in accent, text in heading colour. */
+.termPrompt {
+  color: var(--ifm-heading-color);
+  font-weight: 600;
+}
+
+/* A passing check line: dimmed, like real diagnostic output. */
+.termCheck {
+  color: var(--sk-term-dim);
+}
+
+/* Closing summary line gets full terminal green. */
+.termSummary {
+  color: var(--sk-term);
+}
+
+/* ---- Section scaffolding ---- */
+
+.split,
+.tools,
+.routes,
+.requirements,
+.closing {
+  padding: 5rem 0;
+}
+
+.sectionHead {
+  max-width: 46rem;
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  letter-spacing: -0.028em;
+  color: var(--ifm-heading-color);
+  text-wrap: balance;
+}
+
+.sectionLede {
+  margin: 1rem 0 0;
+  max-width: 54ch;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* ---- Split ---- */
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3.5rem;
+}
+
+.splitCol {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sk-line);
+}
+
+.splitTitle {
+  margin: 0.55rem 0 0.9rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.022em;
+}
+
+.splitCol p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  max-width: 46ch;
+}
+
+/* ---- Tools ---- */
+
+.tools {
+  border-top: 1px solid var(--sk-line);
+  background: var(--sk-bg-sunken);
+}
+
+.toolGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  padding: 1.85rem;
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-surface-color);
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.tool:hover {
+  border-color: var(--sk-line-strong);
+  transform: translateY(-2px);
+}
+
+.toolHead {
+  margin-bottom: 1.1rem;
+}
+
+.toolName {
+  margin: 0 0 0.35rem;
+  font-family: var(--sk-font-mono);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ifm-heading-color);
+}
+
+.toolBlurb {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+.toolDetail {
+  margin: 0 0 1.5rem;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.965rem;
+}
+
+.toolInstall {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-top: auto;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  background: var(--sk-code-bg);
+  overflow-x: auto;
+}
+
+.toolPrompt {
+  font-family: var(--sk-font-mono);
+  font-size: 0.8rem;
+  color: var(--ifm-color-primary);
+  user-select: none;
+}
+
+.toolInstall code {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--ifm-font-color-base);
+}
+
+.toolCta {
+  align-self: flex-start;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+}
+
+/* ---- Routes ---- */
+
+.routeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--sk-line);
+}
+
+.route {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr) auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.4rem 0.25rem;
+  border-bottom: 1px solid var(--sk-line);
+  color: inherit;
+  transition: padding-left 140ms ease, border-color 140ms ease;
+}
+
+.route:hover {
+  color: inherit;
+  text-decoration: none;
+  padding-left: 0.75rem;
+  border-color: var(--ifm-color-primary);
+}
+
+.routeWhen {
+  font-family: var(--sk-font-mono);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ifm-heading-color);
+}
+
+.routeGo {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.routeArrow {
+  font-family: var(--sk-font-mono);
+  color: var(--ifm-color-emphasis-600);
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.route:hover .routeArrow {
+  color: var(--ifm-color-primary);
+  transform: translateX(4px);
+}
+
+/* ---- Requirements ---- */
+
+.requirements {
+  border-top: 1px solid var(--sk-line);
+  border-bottom: 1px solid var(--sk-line);
+  background-color: var(--sk-bg-sunken);
+}
+
+.reqGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: var(--sk-line);
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+}
+
+.req {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 1.1rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--ifm-background-surface-color);
+}
+
+.reqId {
+  margin: 0;
+  font-family: var(--sk-font-mono);
+  font-size: 0.78rem;
+  color: var(--sk-term);
+  word-break: break-word;
+}
+
+.reqBody {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.reqWhat {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+}
+
+.reqWhy {
+  font-size: 0.885rem;
+  line-height: 1.6;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* ---- Closing CTA ---- */
+
+.closing {
+  text-align: center;
+}
+
+.closingTitle {
+  margin: 0 0 1rem;
+  font-family: var(--sk-font-mono);
+  font-size: clamp(1.7rem, 3.5vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--ifm-heading-color);
+}
+
+.closingText {
+  margin: 0 auto 2rem;
+  max-width: 50ch;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.closingActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
 }
 
-.projects {
-  padding: 4rem 0;
+.closingActions :global(.button) {
+  font-size: 0.95rem;
+  padding-inline: 1.35rem;
 }
 
-.projects h2 {
-  margin-top: 0;
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
+
+@media screen and (max-width: 1100px) {
+  .req {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.45rem;
+  }
 }
 
 @media screen and (max-width: 996px) {
   .hero {
-    padding: 2rem 1rem;
+    padding: 3.5rem 0 3.25rem;
   }
 
-  .buttons {
+  .heroInner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.75rem;
+  }
+
+  .heroTagline,
+  .heroBlurb {
+    max-width: none;
+  }
+
+  .split,
+  .tools,
+  .routes,
+  .requirements,
+  .closing {
+    padding: 3.5rem 0;
+  }
+
+  .splitGrid,
+  .toolGrid,
+  .reqGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .route {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 1rem;
+  }
+
+  .routeGo {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .routeArrow {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .heroActions,
+  .closingActions {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroActions :global(.button),
+  .closingActions :global(.button) {
+    width: 100%;
+  }
+
+  .terminalBody {
+    font-size: 0.7rem;
   }
 }

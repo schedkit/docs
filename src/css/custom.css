@@ -1,38 +1,1065 @@
 /**
- * Light customisations on top of the default Docusaurus theme.
- * Keep this file small. Heavy theming belongs in a swizzled component.
+ * schedkit docs — design system.
+ *
+ * Direction: systems / terminal. Dark-first, hairline borders instead of
+ * shadows, sharp radii, monospace for labels and code, generous line height
+ * for long-form technical prose.
+ *
+ * Light mode is a separately tuned theme, not an inversion.
  */
 
+/* ------------------------------------------------------------------ *
+ * Typography — system stacks only, no webfont requests.
+ * ------------------------------------------------------------------ */
+
 :root {
-  --ifm-color-primary: #2174b6;
-  --ifm-color-primary-dark: #1e69a4;
-  --ifm-color-primary-darker: #1c639b;
-  --ifm-color-primary-darkest: #175280;
-  --ifm-color-primary-light: #257fc4;
-  --ifm-color-primary-lighter: #2885cb;
-  --ifm-color-primary-lightest: #4296d9;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-font-family-base:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --ifm-font-family-monospace:
+    ui-monospace, 'SFMono-Regular', 'SF Mono', 'JetBrains Mono', Menlo,
+    Consolas, 'Liberation Mono', monospace;
+
+  --ifm-font-size-base: 16.5px;
+  --ifm-line-height-base: 1.75;
+  --ifm-code-font-size: 87.5%;
+
+  --ifm-heading-font-weight: 700;
+  --ifm-heading-line-height: 1.25;
+
+  /* Terminal labels, eyebrows, sidebar groups. */
+  --sk-font-mono: var(--ifm-font-family-monospace);
+
+  --ifm-global-radius: 3px;
+  --ifm-toc-border-color: var(--sk-line);
+  --docusaurus-highlighted-code-line-bg: rgba(77, 163, 240, 0.14);
+  --ifm-h1-font-size: 2.15rem;
+  --ifm-h2-font-size: 1.55rem;
+  --ifm-h3-font-size: 1.2rem;
 }
 
-[data-theme='dark'] {
-  --ifm-color-primary: #69ace2;
-  --ifm-color-primary-dark: #4799dc;
-  --ifm-color-primary-darker: #358fd9;
-  --ifm-color-primary-darkest: #237ec3;
-  --ifm-color-primary-light: #8bc0e9;
-  --ifm-color-primary-lighter: #a0cbed;
-  --ifm-color-primary-lightest: #c7e0f4;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* ------------------------------------------------------------------ *
+ * Dark palette (default; darkMode default is 'dark')
+ * ------------------------------------------------------------------ */
+
+:root {
+  --ifm-color-primary: #5aa9f2;
+  --ifm-color-primary-dark: #479bec;
+  --ifm-color-primary-darker: #3f93e9;
+  --ifm-color-primary-darkest: #2e77cd;
+  --ifm-color-primary-light: #6db7f3;
+  --ifm-color-primary-lighter: #7bbfef;
+  --ifm-color-primary-lightest: #a2d3f7;
+
+  --ifm-background-color: #0a0d13;
+  --ifm-background-surface-color: #10151d;
+
+  --ifm-font-color-base: #b8c4d4;
+  --ifm-heading-color: #eef3fa;
+  --ifm-font-color-dark: #b8c4d4;
+  --ifm-font-color-darker: #d6dfea;
+  --ifm-font-color-darkest: #eef3fa;
+  --ifm-font-color-light: #9aa7b8;
+  --ifm-font-color-lighter: #7d8a9b;
+  --ifm-font-color-lightest: #6b7787;
+
+  --ifm-color-emphasis-0: var(--ifm-font-color-base);
+  --ifm-color-emphasis-100: var(--ifm-background-color);
+  --ifm-color-emphasis-200: var(--ifm-background-surface-color);
+  --ifm-color-emphasis-300: #1b2230;
+  --ifm-color-emphasis-400: #29323f;
+  --ifm-color-emphasis-500: #3c4757;
+  --ifm-color-emphasis-600: #7d8a9b;
+  --ifm-color-emphasis-700: #b8c4d4;
+  --ifm-color-emphasis-800: #d6dfea;
+  --ifm-color-emphasis-900: #eef3fa;
+
+  --ifm-navbar-background-color: rgba(10, 13, 19, 0.82);
+  --ifm-navbar-shadow: none;
+  --ifm-footer-background-color: #070a0f;
+
+  /* Internal tokens. */
+  --sk-bg-sunken: #070a0f;
+  --sk-surface-2: #161d27;
+  --sk-line: rgba(146, 168, 197, 0.14);
+  --sk-line-strong: rgba(146, 168, 197, 0.24);
+  --sk-grid: rgba(146, 168, 197, 0.055);
+  --sk-glow: rgba(77, 163, 240, 0.16);
+  --sk-term: #a9de74;
+  --sk-term-dim: #8fbf63;
+  --sk-code-bg: #0d1219;
+  --sk-inline-code-bg: #171f2a;
+  --sk-inline-code-fg: #a9d1f8;
 }
 
-/* A bit more breathing room between paragraphs in long-form pages. */
-.markdown > p {
-  margin-bottom: 1.1rem;
+/* ------------------------------------------------------------------ *
+ * Light palette — independently tuned, warm-neutral, not inverted.
+ * ------------------------------------------------------------------ */
+
+[data-theme='light'] {
+  --ifm-color-primary: #1a63b0;
+  --ifm-color-primary-dark: #185ba3;
+  --ifm-color-primary-darker: #17589e;
+  --ifm-color-primary-darkest: #134984;
+  --ifm-color-primary-light: #1c6bbd;
+  --ifm-color-primary-lighter: #1d70c5;
+  --ifm-color-primary-lightest: #2179d3;
+
+  --ifm-background-color: #fdfdfc;
+  --ifm-background-surface-color: #ffffff;
+
+  --ifm-font-color-base: #333c48;
+  --ifm-heading-color: #10161e;
+  --ifm-font-color-light: #5a6675;
+  --ifm-font-color-lighter: #5f6a79;
+  --ifm-font-color-lightest: #6b7684;
+  --ifm-font-color-dark: #2a323d;
+  --ifm-font-color-darker: #1e252e;
+  --ifm-font-color-darkest: #10161e;
+
+  --ifm-color-emphasis-200: #ffffff;
+  --ifm-color-emphasis-300: #f4f5f7;
+  --ifm-color-emphasis-400: #e6e8ec;
+  --ifm-color-emphasis-500: #d2d6dc;
+  --ifm-color-emphasis-600: #5f6a79;
+  --ifm-color-emphasis-700: #4a5563;
+  --ifm-color-emphasis-800: #2a323d;
+  --ifm-color-emphasis-900: #10161e;
+
+  --ifm-navbar-background-color: rgba(253, 253, 252, 0.85);
+  --ifm-footer-background-color: #f4f5f7;
+
+  --sk-bg-sunken: #f7f8f9;
+  --sk-surface-2: #f4f5f7;
+  --sk-line: rgba(24, 38, 58, 0.13);
+  --sk-line-strong: rgba(24, 38, 58, 0.22);
+  --sk-grid: rgba(24, 38, 58, 0.045);
+  --sk-glow: rgba(26, 99, 176, 0.09);
+  --sk-term: #35701f;
+  --sk-term-dim: #4a7c37;
+  --sk-code-bg: #f7f8fa;
+  --sk-inline-code-bg: #eef0f4;
+  --sk-inline-code-fg: #1a4a86;
+
+  --docusaurus-highlighted-code-line-bg: rgba(26, 99, 176, 0.09);
 }
 
-/* Slightly tighter inline code so it doesn't feel pasted on. */
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-ligatures: none;
+}
+
+::selection {
+  background: rgba(77, 163, 240, 0.28);
+  color: var(--ifm-heading-color);
+}
+
+/* A single, consistent, keyboard-visible focus treatment everywhere. */
+:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Thin, self-effacing scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sk-line-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--sk-line-strong);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ifm-color-primary);
+  background-clip: content-box;
+}
+
+.skipToContent_fallback {
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Navbar
+ * ------------------------------------------------------------------ */
+
+.navbar {
+  border-bottom: 1px solid var(--sk-line);
+  padding-inline: 0.5rem;
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+}
+
+.navbar__inner {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+.navbar__brand {
+  margin-right: 1.75rem;
+}
+
+.navbar__logo {
+  height: 24px;
+  width: auto;
+}
+
+.navbar__title {
+  font-family: var(--sk-font-mono);
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+  padding-inline-start: 0.55rem;
+}
+
+.navbar__logo + .navbar__title {
+  padding-inline-start: 0.55rem;
+}
+
+.navbar__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 120ms ease;
+}
+
+.navbar__link::after {
+  content: '';
+  display: block;
+  height: 1px;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: currentColor;
+  transition: transform 160ms ease;
+}
+
+.navbar__link:hover::after,
+.navbar__link--active::after {
+  transform: scaleX(1);
+}
+
+.navbar__link--active {
+  color: var(--ifm-color-primary);
+}
+
+.navbar .navbar__items--right {
+  margin-inline-start: auto;
+}
+
+/* GitHub link gets an icon treatment rather than bare text on wide screens. */
+.navbar__link--github {
+  font-family: var(--sk-font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.navbar__cta {
+  font-family: var(--sk-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--sk-line-strong);
+  border-radius: var(--ifm-global-radius);
+  padding: 0.3rem 0.7rem;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.navbar__cta:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.navbar__cta::after {
+  display: none;
+}
+
+/* Theme toggle: square-ish, hairline. */
+.navbar__items--right .clean-btn {
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  transition: border-color 120ms ease;
+}
+
+.navbar__items--right .clean-btn:hover {
+  border-color: var(--sk-line-strong);
+  background: transparent;
+  color: var(--ifm-color-primary);
+}
+
+.navbar__toggle,
+.navbar__login {
+  border-radius: var(--ifm-global-radius);
+}
+
+/* ------------------------------------------------------------------ *
+ * Sidebar
+ * ------------------------------------------------------------------ */
+
+.sidebar {
+  border-right: 1px solid var(--sk-line);
+  padding-block: 1.5rem 3rem;
+}
+
+.sidebar__group {
+  padding-inline-start: 0.55rem;
+}
+
+.menu__list-item-collapsible {
+  list-style-type: none;
+}
+
+.menu__list-item-collapsible > .menu__list-item-collapsible-toggle {
+  font-family: var(--sk-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ifm-color-emphasis-600);
+  padding-block: 0.85rem 0.5rem;
+}
+
+.menu__list-item-collapsible > .menu__list-item-collapsible-toggle:hover {
+  background: transparent;
+  color: var(--ifm-heading-color);
+}
+
+.menu__list-item-collapsible-toggle::before {
+  background: var(--sk-line-strong);
+  height: 1px;
+  opacity: 1;
+}
+
+.menu__list-item-collapsible-toggle:hover::before {
+  background: var(--sk-line-strong);
+  opacity: 1;
+}
+
+.menu__link {
+  font-size: 0.895rem;
+  line-height: 1.45;
+  border-radius: var(--ifm-global-radius);
+  padding-block: 0.36rem;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.menu__link:hover {
+  background: var(--sk-surface-2);
+  color: var(--ifm-heading-color);
+  text-decoration: none;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background: var(--sk-surface-2);
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.menu__link--active:not(.menu__link--sublist)::before {
+  background: var(--ifm-color-primary);
+  width: 2px;
+  height: 1.05em;
+  opacity: 1;
+  left: -0.55rem;
+  border-radius: 2px;
+}
+
+.menu__list-item > .menu__list-item-collapsible:hover {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * Document content
+ * ------------------------------------------------------------------ */
+
+.docItemContainer {
+  padding-block: 2.5rem 4rem;
+}
+
+.theme-doc-markdown {
+  font-size: 1.01rem;
+}
+
+.theme-doc-markdown > p,
+.theme-doc-markdown > ul,
+.theme-doc-markdown > ol {
+  margin-bottom: 1.15rem;
+}
+
+/*
+ * Docusaurus renders the page title as <header><h1>…</h1></header>, so the h1
+ * is not a direct child of .theme-doc-markdown. Both forms are covered.
+ */
+.theme-doc-markdown header > h1,
+.theme-doc-markdown > h1 {
+  font-family: var(--sk-font-mono);
+  font-weight: 600;
+  font-size: 2rem;
+  letter-spacing: -0.035em;
+  margin-bottom: 1.5rem;
+}
+
+.theme-doc-markdown header > h1::after,
+.theme-doc-markdown > h1::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  margin-top: 0.9rem;
+  background: var(--ifm-color-primary);
+}
+
+.theme-doc-markdown > h2 {
+  font-size: 1.42rem;
+  letter-spacing: -0.022em;
+  margin-top: 2.9rem;
+  padding-top: 0.4rem;
+}
+
+.theme-doc-markdown > h3 {
+  font-size: 1.13rem;
+  letter-spacing: -0.012em;
+  margin-top: 2.1rem;
+}
+
+.theme-doc-markdown > h4,
+.theme-doc-markdown > h5,
+.theme-doc-markdown > h6 {
+  font-family: var(--sk-font-mono);
+  font-size: 0.94rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ifm-color-emphasis-700);
+  margin-top: 1.9rem;
+}
+
+/* Prose measure: long lines are the fastest way to make docs unreadable. */
+@media screen and (min-width: 997px) {
+  .theme-doc-markdown {
+    max-width: 46rem;
+  }
+}
+
+.theme-doc-markdown a {
+  text-decoration: underline;
+  text-decoration-color: var(--sk-line-strong);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+
+.theme-doc-markdown a:hover {
+  text-decoration-color: var(--ifm-color-primary);
+}
+
+.theme-doc-markdown strong {
+  font-weight: 650;
+  color: var(--ifm-font-color-darkest);
+}
+
+.theme-doc-markdown blockquote {
+  border-inline-start: 2px solid var(--sk-line-strong);
+  padding-inline-start: 1.1rem;
+  font-style: normal;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.theme-doc-markdown ul,
+.theme-doc-markdown ol {
+  padding-inline-start: 1.4rem;
+}
+
+.theme-doc-markdown li {
+  margin-bottom: 0.4rem;
+}
+
+.theme-doc-markdown li::marker {
+  color: var(--sk-line-strong);
+}
+
+.theme-doc-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--sk-line);
+  margin-block: 2.75rem;
+}
+
+.theme-doc-markdown img {
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+}
+
+/* Source-file breadcrumb above the page title. */
+.theme-doc-breadcrumbs {
+  font-family: var(--sk-font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.9rem;
+}
+
+.theme-doc-breadcrumbs__link {
+  background: var(--sk-surface-2);
+  border-radius: var(--ifm-global-radius);
+  padding: 0.15rem 0.45rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.theme-doc-breadcrumbs__link:hover {
+  background: var(--sk-surface-2);
+  color: var(--ifm-color-primary);
+}
+
+/* Last-updated line under the title. */
+.theme-doc-footer-edit-info-row {
+  font-family: var(--sk-font-mono);
+  font-size: 0.76rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.theme-doc-footer-edit-info-row a {
+  text-decoration: none;
+}
+
+.theme-doc-footer-edit-info-row a:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* "Edit this page" as a quiet monospace chip. */
+.theme-doc-footer-edit-meta-row {
+  margin-bottom: 2.5rem;
+}
+
+.theme-doc-footer-edit-meta-row .button.button {
+  font-family: var(--sk-font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--sk-line);
+  background: transparent;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.theme-doc-footer-edit-meta-row .button.button:hover {
+  border-color: var(--sk-line-strong);
+  background: transparent;
+  color: var(--ifm-color-primary);
+}
+
+/* ------------------------------------------------------------------ *
+ * Code
+ * ------------------------------------------------------------------ */
+
 code {
-  border-radius: 4px;
-  padding: 0.1rem 0.3rem;
+  font-family: var(--sk-font-mono);
+  font-variant-ligatures: none;
+}
+
+:not(pre) > code {
+  background: var(--sk-inline-code-bg);
+  color: var(--sk-inline-code-fg);
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  padding: 0.1em 0.36em;
+  font-size: 0.855em;
+  word-break: break-word;
+}
+
+.theme-code-block {
+  margin-block: 1.5rem;
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  background: var(--sk-code-bg);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.theme-code-block > pre {
+  margin: 0;
+  padding: 1.05rem 1.15rem;
+  font-size: 0.855rem;
+  line-height: 1.62;
+  background: transparent;
+}
+
+.theme-code-block > pre > code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: var(--ifm-font-color-base);
+  display: block;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Language label, terminal-style, in the top-right of every code block. */
+.theme-code-block__title {
+  border-bottom: 1px solid var(--sk-line);
+  background: var(--sk-bg-sunken);
+}
+
+.theme-code-block .code-block__title {
+  font-family: var(--sk-font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.3rem 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-code-block .code-block__title::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sk-term);
+  opacity: 0.75;
+}
+
+/* The floating copy button needs to sit inside the block, not over it. */
+.theme-code-block > button {
+  border-radius: var(--ifm-global-radius);
+  background: var(--sk-surface-2);
+  border: 1px solid var(--sk-line);
+  color: var(--ifm-color-emphasis-600);
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.theme-code-block > button:hover {
+  color: var(--ifm-color-primary);
+  border-color: var(--sk-line-strong);
+}
+
+.code-block__copy-button {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.theme-code-block:hover .code-block__copy-button,
+.code-block__copy-button:focus-visible {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tables
+ * ------------------------------------------------------------------ */
+
+.theme-doc-markdown table {
+  display: table;
+  width: 100%;
+  margin-block: 1.5rem;
+  font-size: 0.9rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+}
+
+.theme-doc-markdown table thead {
+  background: var(--sk-surface-2);
+}
+
+.theme-doc-markdown table th {
+  font-family: var(--sk-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ifm-color-emphasis-700);
+  text-align: left;
+}
+
+.theme-doc-markdown table th,
+.theme-doc-markdown table td {
+  padding: 0.65rem 0.85rem;
+  border-color: var(--sk-line);
+  vertical-align: top;
+}
+
+.theme-doc-markdown table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+.theme-doc-markdown table tbody tr:hover {
+  background: var(--sk-surface-2);
+}
+
+/* ------------------------------------------------------------------ *
+ * Admonitions — left accent bar over heavy fills
+ * ------------------------------------------------------------------ */
+
+.theme-doc-markdown .alert {
+  border: 1px solid var(--sk-line);
+  border-inline-start: 3px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background: var(--sk-surface-2);
+  box-shadow: none;
+  color: var(--ifm-font-color-base);
+  margin-block: 1.6rem;
+}
+
+.theme-doc-markdown .alert--info,
+.theme-doc-markdown .alert--secondary,
+.theme-doc-markdown .alert--success,
+.theme-doc-markdown .alert--note {
+  --ifm-alert-color: var(--ifm-color-primary);
+}
+
+.theme-doc-markdown .alert--tip {
+  --ifm-alert-color: var(--sk-term);
+}
+
+.theme-doc-markdown .alert--warning {
+  --ifm-alert-color: #d9a441;
+}
+
+.theme-doc-markdown .alert--danger {
+  --ifm-alert-color: #e5646d;
+}
+
+.theme-doc-markdown .alert__icon {
+  color: var(--ifm-alert-color);
+}
+
+.theme-doc-markdown .alert__title {
+  font-family: var(--sk-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ifm-alert-color);
+}
+
+/* ------------------------------------------------------------------ *
+ * Cards, pagination, buttons
+ * ------------------------------------------------------------------ */
+
+.card {
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-surface-color);
+  box-shadow: none;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.card:hover {
+  border-color: var(--sk-line-strong);
+}
+
+.card__header,
+.card__body,
+.card__footer {
+  border-color: var(--sk-line);
+}
+
+.card__title {
+  font-family: var(--sk-font-mono);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.card--linkable:hover {
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  transition: border-color 140ms ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--sk-line-strong);
+}
+
+.pagination-nav__sublabel {
+  font-family: var(--sk-font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.pagination-nav__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.button {
+  border-radius: var(--ifm-global-radius);
+  font-weight: 600;
+  transition: background-color 130ms ease, border-color 130ms ease,
+    color 130ms ease;
+}
+
+/*
+ * Infima ships competing rules at (0,2,0) — `.button.button--secondary`,
+ * `.button.button--outline`, `.button:hover` — so every rule below is scoped
+ * with `.button` and declares a hover state explicitly. A bare
+ * `.button--secondary` silently loses and renders black-on-black in dark mode.
+ */
+.button.button--primary {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .button.button--primary {
+  color: #06121d;
+}
+
+.button.button--primary:hover {
+  background: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .button.button--primary:hover {
+  color: #06121d;
+}
+
+.button.button--secondary,
+.button.button--outline {
+  border-color: var(--sk-line-strong);
+  color: var(--ifm-font-color-darkest);
+  background: transparent;
+}
+
+.button.button--secondary:hover,
+.button.button--outline:hover {
+  background: var(--sk-surface-2);
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.button.button--outline--primary {
+  border-color: var(--sk-line-strong);
+  color: var(--ifm-color-primary);
+}
+
+/*
+ * `button--outline` and `button--primary` are two separate Infima classes, so
+ * `.button--outline--primary` alone never matches an element carrying both.
+ * This form is what `className="button button--outline button--primary"`
+ * actually hits — and it needs to out-specify the dark-mode primary rule.
+ */
+.button.button--outline.button--primary,
+[data-theme='dark'] .button.button--outline.button--primary {
+  background: transparent;
+  border-color: var(--sk-line-strong);
+  color: var(--ifm-color-primary);
+}
+
+.button.button--outline.button--primary:hover,
+[data-theme='dark'] .button.button--outline.button--primary:hover {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .button.button--outline.button--primary:hover {
+  color: #06121d;
+}
+
+.tabs-container .tabs {
+  border-bottom: 1px solid var(--sk-line);
+}
+
+.tabs-container .tabs__item {
+  font-family: var(--sk-font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  border-color: var(--sk-line-strong);
+}
+
+.tabs-container .tabs__item--active {
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+
+.dropdown__menu {
+  border: 1px solid var(--sk-line);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* ------------------------------------------------------------------ *
+ * Prism — dark
+ * ------------------------------------------------------------------ */
+
+/*
+ * prism-react-renderer injects its theme from the JS bundle at runtime, after
+ * the stylesheet link, so ordinary specificity does not reliably win. The
+ * stock github (light) theme also drops two token colours below 4.5:1 on our
+ * light code background: `.token.function` (#d73a49) and `.token.parameter`
+ * (#36acaa). Darken just those two. Dark is left alone — dracula is >7:1.
+ */
+[data-theme='light'] .token.function {
+  color: #b02a37 !important;
+}
+
+[data-theme='light'] .token.parameter,
+[data-theme='light'] .token.parameter .token.punctuation {
+  color: #0b7285 !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Table of contents
+ * ------------------------------------------------------------------ */
+
+.table-of-contents {
+  font-size: 0.83rem;
+  padding-block-start: 2.5rem;
+}
+
+.table-of-contents__title {
+  font-family: var(--sk-font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 0.8rem;
+}
+
+.table-of-contents__link {
+  line-height: 1.5;
+  padding-block: 0.16rem;
+}
+
+.table-of-contents__link--active {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+
+.footer {
+  border-top: 1px solid var(--sk-line);
+  margin-top: 3rem;
+}
+
+/*
+ * The footer is `style: 'dark'` in both themes, so it carries its own fixed
+ * palette. Theme-scoped text tokens (--ifm-color-emphasis-600 and friends)
+ * are wrong in one theme or the other, which silently failed contrast.
+ */
+.footer {
+  background-color: #070a0f;
+  border-top: 1px solid rgba(146, 168, 197, 0.16);
+  color: #aab6c5;
+}
+
+.footer__title {
+  font-family: var(--sk-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  margin-bottom: 0.9rem;
+  color: #8d99a8;
+}
+
+.footer__link-item,
+.footer__link-item a {
+  font-size: 0.875rem;
+  color: #aab6c5;
+}
+
+.footer__link-item a:hover {
+  color: #d7e3f2;
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(146, 168, 197, 0.16);
+  font-family: var(--sk-font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+  text-align: center;
+  color: #8d99a8;
+}
+
+.footer__copyright {
+  margin-top: 0.35rem;
+  color: #8d99a8;
+}
+
+/* ------------------------------------------------------------------ *
+ * Pagination label above page title on doc pages
+ * ------------------------------------------------------------------ */
+
+.pagination-label {
+  font-family: var(--sk-font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* ------------------------------------------------------------------ *
+ * Shared decorative primitives used by the homepage.
+ * ------------------------------------------------------------------ */
+
+.sk-grid-bg {
+  background-image:
+    linear-gradient(var(--sk-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sk-grid) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+
+.sk-eyebrow {
+  font-family: var(--sk-font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion — respect the OS, always.
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
