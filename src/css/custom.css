@@ -1,13 +1,18 @@
 /**
- * schedkit docs — stark monochrome.
+ * schedkit docs — monochrome with one earned accent.
  *
- * No decorative colour anywhere. Structure is carried by type scale and 1px
- * hairlines; mono is used only for literal code, commands and check IDs.
- * Dark and light are the same design inverted, not two designs.
+ * The page is grey. There is exactly one colour, and it has exactly one job:
+ * to mark the product, a pointer, the current position, or keyboard focus.
  *
- * Everything is achromatic by intent. If you find yourself adding a colour,
- * the first question is whether it encodes meaning (a pass/fail) or is just
- * decoration. Decoration loses.
+ *   --sk-accent is allowed on: the logo, links, the active sidebar/TOC
+ *   entry, and the focus ring. Nothing else.
+ *
+ * The test for adding more colour is not "would this look nicer" but "does
+ * this encode something a reader could act on". Decoration loses.
+ *
+ * Structure is carried by type scale and 1px hairlines; mono is used only
+ * for literal code, commands and check IDs. Dark and light are the same
+ * design inverted, not two designs.
  */
 
 /* ------------------------------------------------------------------ *
@@ -57,6 +62,8 @@
   --sk-fg-subtle: #8a8a8a;
   --sk-line: #2b2b2b;
   --sk-line-strong: #4a4a4a;
+  /* The one colour. Logo, links, current position, focus. Nothing else. */
+  --sk-accent: #4c9be8;
 
   --ifm-background-color: var(--sk-bg);
   --ifm-background-surface-color: var(--sk-surface);
@@ -68,7 +75,7 @@
   --ifm-font-color-light: var(--sk-fg-muted);
   --ifm-font-color-lighter: var(--sk-fg-muted);
   --ifm-font-color-lightest: var(--sk-fg-subtle);
-  --ifm-link-color: var(--sk-fg);
+  --ifm-link-color: var(--sk-accent);
 
   /* Infima derives the font ramp from these; pin them so it stays grey. */
   --ifm-color-content: var(--sk-fg);
@@ -124,6 +131,8 @@
   --sk-fg-subtle: #6e6e6e;
   --sk-line: #e2e2e2;
   --sk-line-strong: #c2c2c2;
+  /* Exactly the logo blue — 4.8:1 on white, so it clears AA for link text. */
+  --sk-accent: #2376b8;
 
   --ifm-background-color: var(--sk-bg);
   --ifm-background-surface-color: var(--sk-surface);
@@ -132,7 +141,7 @@
   --ifm-font-color-light: var(--sk-fg-muted);
   --ifm-font-color-lighter: var(--sk-fg-muted);
   --ifm-font-color-lightest: var(--sk-fg-subtle);
-  --ifm-link-color: #000000;
+  --ifm-link-color: var(--sk-accent);
   --ifm-color-content: var(--sk-fg);
   --ifm-color-content-secondary: var(--sk-fg-muted);
 
@@ -187,8 +196,13 @@ body {
   color: var(--sk-bg);
 }
 
+/*
+ * Focus is blue. A keyboard user must be able to tell focus apart from a
+ * decorative state at a glance, and blue is the only thing on this page that
+ * already means "actionable".
+ */
 :focus-visible {
-  outline: 2px solid var(--sk-fg);
+  outline: 2px solid var(--sk-accent);
   outline-offset: 3px;
 }
 
@@ -240,12 +254,7 @@ body {
 .navbar__logo {
   height: 22px;
   width: auto;
-  /*
-   * static/img/README.md records logo.svg as a committed placeholder: a blue
-   * rounded square. Desaturate it so the palette stays achromatic. Delete this
-   * filter when a real logo lands.
-   */
-  filter: grayscale(1) contrast(1.1);
+  /* Full saturation: the logo is the one surface that earns the accent. */
 }
 
 .navbar__title {
@@ -266,12 +275,12 @@ body {
   transition: color 120ms ease;
 }
 
-.navbar__link:hover,
-.navbar__link--active {
+.navbar__link:hover {
   color: var(--sk-fg);
 }
 
 .navbar__link--active {
+  color: var(--sk-accent);
   font-weight: 700;
 }
 
@@ -356,11 +365,17 @@ body {
   text-decoration: none;
 }
 
-/* Active item: inverted chip. No hue, no left bar, no tint. */
+/*
+ * Active sidebar entry: blue, no fill. "You are here" is a pointer, so it
+ * gets the pointer colour rather than a chip — a background fill would be the
+ * one place on the page where the accent stops meaning anything.
+ */
 .menu__link--active:not(.menu__link--sublist) {
-  background: var(--sk-fg);
-  color: var(--sk-bg);
-  font-weight: 600;
+  background: transparent;
+  color: var(--sk-accent);
+  font-weight: 700;
+  border-left: 2px solid var(--sk-accent);
+  padding-left: calc(0.5rem - 2px);
 }
 
 .menu__link--active:not(.menu__link--sublist)::before {
@@ -431,18 +446,20 @@ body {
   }
 }
 
-/* Links are underlined, not coloured. */
+/* Links: blue and underlined. The underline means "pointer" even when the
+   colour is missed or the link is visited. */
 .theme-doc-markdown a {
+  color: var(--sk-accent);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
   text-decoration-color: var(--sk-line-strong);
-  transition: text-decoration-color 120ms ease, color 120ms ease;
+  transition: text-decoration-color 120ms ease;
 }
 
 .theme-doc-markdown a:hover {
-  color: var(--sk-fg);
-  text-decoration-color: var(--sk-fg);
+  color: var(--sk-accent);
+  text-decoration-color: var(--sk-accent);
 }
 
 .theme-doc-markdown strong {
@@ -950,6 +967,7 @@ code {
 }
 
 .table-of-contents__link--active {
+  color: var(--sk-accent);
   font-weight: 600;
 }
 

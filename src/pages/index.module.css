@@ -10,7 +10,12 @@
   border-bottom: 1px solid var(--sk-line);
 }
 
-/* The type scale is the whole design: this is the biggest thing on the site. */
+/*
+ * The type scale is the whole design: this is the biggest thing on the site.
+ * It stays grey — the navbar logo is the only place the accent is allowed to
+ * sit beside the product name, and two blues competing for the same wordmark
+ * would undo the rule.
+ */
 .wordmark {
   margin: 0 0 1.25rem;
   font-size: clamp(3.4rem, 11vw, 7.5rem);
@@ -200,10 +205,11 @@
   user-select: none;
 }
 
+/* Same rule as the doc pages: blue marks a pointer, never a decoration. */
 .toolLink {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--sk-fg);
+  color: var(--sk-accent);
   text-decoration: underline;
   text-decoration-color: var(--sk-line-strong);
   text-underline-offset: 0.22em;
@@ -212,8 +218,8 @@
 }
 
 .toolLink:hover {
-  color: var(--sk-fg);
-  text-decoration-color: var(--sk-fg);
+  color: var(--sk-accent);
+  text-decoration-color: var(--sk-accent);
 }
 
 /* ---- Requirements table ---- */
@@ -298,7 +304,7 @@
 .route:hover .routeWhen {
   text-decoration: underline;
   text-underline-offset: 0.22em;
-  text-decoration-color: var(--sk-line-strong);
+  text-decoration-color: var(--sk-accent);
 }
 
 .routeWhat {
