@@ -12,25 +12,32 @@ import styles from './index.module.css';
  * ------------------------------------------------------------------ */
 
 /*
- * PLACEHOLDER — DO NOT SHIP.
- *
- * The command, the check IDs and the flags below are real and taken from
- * docs/schedctl/commands.md. The output values are not real: no sched_ext
- * host was consulted, and `schedctl doctor` output has never been captured.
- * Replace this block with the verbatim output of
- *
- *     sudo schedctl doctor
- *
- * on a Linux 6.12+ host with CONFIG_SCHED_CLASS_EXT=y. Keep the real wording
- * and check IDs verbatim — the value of this block is that it is a true
- * screenshot of the tool, not a flattering impression of it.
+ * Verbatim output of `sudo schedctl doctor` on a sched_ext-capable host
+ * (running kernel 7.1.8-1-default). The check IDs match
+ * docs/schedctl/commands.md. Keep this block a true screenshot of the tool:
+ * if the output format changes, re-capture it rather than hand-editing the
+ * values.
  */
 const DOCTOR_TRANSCRIPT: string[] = [
   '$ sudo schedctl doctor',
   '',
-  '[ PLACEHOLDER ]',
-  '[ Paste real output from a sched_ext-capable host. ]',
-  '[ Command + check IDs are real; this output is not. ]',
+  'schedctl doctor — host readiness check',
+  '',
+  '[PASS]  kernel.version             7.1.8-1-default',
+  '[PASS]  kernel.sched_ext           /sys/kernel/sched_ext is present',
+  '[PASS]  kernel.btf                 /sys/kernel/btf/vmlinux (5993874 bytes)',
+  '[PASS]  kernel.config              all required CONFIG_* flags enabled',
+  '[PASS]  caps.cap_bpf               CapEff bit 39 set',
+  '[PASS]  caps.cap_sys_admin         CapEff bit 21 set',
+  '[PASS]  caps.cap_perfmon           CapEff bit 38 set',
+  '[PASS]  runtime.podman_socket      /run/podman/podman.sock',
+  '[WARN]  runtime.containerd_socket  none reachable: /run/containerd/containerd.sock',
+  '[PASS]  runtime.any                /run/podman/podman.sock',
+  '',
+  'Remediation:',
+  '  - runtime.containerd_socket: start containerd (e.g. `systemctl enable --now containerd`) or rely on Podman',
+  '',
+  'Summary: 9 passed, 1 failed, 0 skipped (0 blocking)',
 ];
 
 /** Single right-aligned button, old-school Linux titlebar. Not macOS dots. */
