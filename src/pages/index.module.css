@@ -1,32 +1,373 @@
+/**
+ * Homepage styles. Scoped to src/pages/index.tsx.
+ *
+ * Structure comes from type scale and 1px rules. No grids, no glow, no pills,
+ * no rounded cards, no hover lift, no colour.
+ */
+
 .hero {
-  padding: 4rem 0;
-  text-align: center;
-  background: linear-gradient(135deg, var(--ifm-color-primary-darkest) 0%, var(--ifm-color-primary) 100%);
-  color: white;
+  padding: 4.5rem 0 4rem;
+  border-bottom: 1px solid var(--sk-line);
 }
 
-.buttons {
+/*
+ * The type scale is the whole design: this is the biggest thing on the site.
+ * It stays grey — the navbar logo is the only place the accent is allowed to
+ * sit beside the product name, and two blues competing for the same wordmark
+ * would undo the rule.
+ */
+.wordmark {
+  margin: 0 0 1.25rem;
+  font-size: clamp(3.4rem, 11vw, 7.5rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  color: var(--sk-fg);
+}
+
+.tagline {
+  margin: 0 0 3rem;
+  max-width: 28ch;
+  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  color: var(--sk-fg);
+  text-wrap: balance;
+}
+
+.heroLower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4rem;
+  align-items: start;
+}
+
+.heroProse p {
+  margin: 0 0 1rem;
+  max-width: 54ch;
+  color: var(--sk-fg-muted);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+/* ---- Transcript ---- */
+
+.transcript {
+  margin: 0;
+  border: 1px solid var(--sk-line);
+  background: var(--sk-surface);
+}
+
+.transcriptBar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.8rem;
+  border-bottom: 1px solid var(--sk-line);
 }
 
-.projects {
+.transcriptTitle {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--sk-fg-subtle);
+}
+
+.transcriptButton {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--sk-line-strong);
+}
+
+.transcriptBody {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.transcriptBody code {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
+  color: var(--sk-fg);
+}
+
+/* ---- Sections ---- */
+
+.section {
   padding: 4rem 0;
+  border-bottom: 1px solid var(--sk-line);
 }
 
-.projects h2 {
-  margin-top: 0;
+.section:last-child {
+  border-bottom: 0;
 }
+
+.sectionTitle {
+  margin: 0 0 2rem;
+  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--sk-fg);
+}
+
+.sectionLede {
+  margin: -1.25rem 0 2rem;
+  max-width: 56ch;
+  color: var(--sk-fg-muted);
+}
+
+/* ---- Tools ---- */
+
+.tools {
+  margin: 0;
+  border-top: 1px solid var(--sk-line-strong);
+}
+
+.tool {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 2rem;
+  padding-block: 2rem;
+  border-bottom: 1px solid var(--sk-line);
+}
+
+.toolHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.toolNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.toolName {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--sk-fg);
+}
+
+/* Monochrome status pill: encodes maturity, adds no hue. */
+.toolBadge {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sk-fg-muted);
+  border: 1px solid var(--sk-line-strong);
+  background: var(--sk-surface);
+  padding: 0.1rem 0.4rem;
+  line-height: 1.5;
+  user-select: none;
+}
+
+.toolLine {
+  font-size: 0.92rem;
+  color: var(--sk-fg-subtle);
+}
+
+.toolBody {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.toolBody p {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--sk-fg-muted);
+}
+
+.install {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--sk-line);
+  background: var(--sk-surface);
+  overflow-x: auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+}
+
+.install code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  white-space: nowrap;
+  color: var(--sk-fg);
+}
+
+.prompt {
+  color: var(--sk-fg-subtle);
+  user-select: none;
+}
+
+/* Same rule as the doc pages: blue marks a pointer, never a decoration. */
+.toolLink {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--sk-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--sk-line-strong);
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 120ms ease;
+}
+
+.toolLink:hover {
+  color: var(--sk-accent);
+  text-decoration-color: var(--sk-accent);
+}
+
+/* ---- Requirements table ---- */
+
+.reqTable {
+  display: table;
+  width: 100%;
+  margin: 0;
+  font-size: 0.92rem;
+  border-collapse: collapse;
+  border-top: 1px solid var(--sk-line-strong);
+}
+
+.reqTable thead,
+.reqTable tbody tr:nth-child(2n) {
+  background: transparent;
+}
+
+.reqTable th {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: left;
+  color: var(--sk-fg-subtle);
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid var(--sk-line);
+}
+
+.reqTable td {
+  padding: 0.85rem 0.8rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--sk-line);
+}
+
+.reqTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.reqTable td code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--sk-fg);
+}
+
+.reqNote {
+  color: var(--sk-fg-muted);
+}
+
+/* ---- Routes ---- */
+
+.routes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--sk-line-strong);
+}
+
+.route {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: 2rem;
+  padding-block: 1.4rem;
+  border-bottom: 1px solid var(--sk-line);
+  color: inherit;
+  transition: color 120ms ease;
+}
+
+.route:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.routeWhen {
+  font-weight: 600;
+  color: var(--sk-fg);
+}
+
+.route:hover .routeWhen {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-color: var(--sk-accent);
+}
+
+.routeWhat {
+  color: var(--sk-fg-muted);
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------ */
 
 @media screen and (max-width: 996px) {
   .hero {
-    padding: 2rem 1rem;
+    padding: 3rem 0;
   }
 
-  .buttons {
+  .tagline {
+    margin-bottom: 2rem;
+  }
+
+  .heroLower {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .tool,
+  .route {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .heroActions {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroActions :global(.button) {
+    width: 100%;
   }
 }

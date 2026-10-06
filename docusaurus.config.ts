@@ -15,7 +15,12 @@ const config: Config = {
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -40,6 +45,13 @@ const config: Config = {
 
   themeConfig: {
     image: 'img/social-card.png',
+    metadata: [
+      {
+        name: 'keywords',
+        content:
+          'sched_ext, sched_ext scheduler, Linux scheduler, BPF, OCI, Kubernetes operator, eBPF',
+      },
+    ],
     colorMode: {
       defaultMode: 'dark',
       respectPrefersColorScheme: true,
@@ -71,6 +83,7 @@ const config: Config = {
           href: 'https://github.com/schedkit',
           label: 'GitHub',
           position: 'right',
+          className: 'navbar__cta',
         },
       ],
     },
@@ -107,7 +120,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['bash', 'yaml', 'toml', 'go', 'docker'],
+      additionalLanguages: ['bash', 'yaml', 'toml', 'go', 'docker', 'json'],
     },
   } satisfies Preset.ThemeConfig,
 };

@@ -7,74 +7,272 @@ import Heading from '@theme/Heading';
 
 import styles from './index.module.css';
 
+/* ------------------------------------------------------------------ *
+ * Hero
+ * ------------------------------------------------------------------ */
+
+const DOCTOR_TRANSCRIPT: string[] = [
+  '$ sudo schedctl doctor',
+  '',
+  'schedctl doctor — host readiness check',
+  '',
+  '[PASS]  kernel.version             7.1.8-1-default',
+  '[PASS]  kernel.sched_ext           /sys/kernel/sched_ext is present',
+  '[PASS]  kernel.btf                 /sys/kernel/btf/vmlinux (5993874 bytes)',
+  '[PASS]  kernel.config              all required CONFIG_* flags enabled',
+  '[PASS]  caps.cap_bpf               CapEff bit 39 set',
+  '[PASS]  caps.cap_sys_admin         CapEff bit 21 set',
+  '[PASS]  caps.cap_perfmon           CapEff bit 38 set',
+  '[PASS]  runtime.podman_socket      /run/podman/podman.sock',
+  '[WARN]  runtime.containerd_socket  none reachable: /run/containerd/containerd.sock',
+  '[PASS]  runtime.any                /run/podman/podman.sock',
+  '',
+  'Remediation:',
+  '  - runtime.containerd_socket: start containerd (e.g. `systemctl enable --now containerd`) or rely on Podman',
+  '',
+  'Summary: 9 passed, 1 failed, 0 skipped (0 blocking)',
+];
+
+/** Single right-aligned button, old-school Linux titlebar. Not macOS dots. */
+function Transcript() {
+  return (
+    <figure className={styles.transcript}>
+      <div className={styles.transcriptBar}>
+        <figcaption className={styles.transcriptTitle}>
+          schedctl doctor
+        </figcaption>
+        <span className={styles.transcriptButton} aria-hidden="true" />
+      </div>
+      <pre className={styles.transcriptBody}>
+        <code>{DOCTOR_TRANSCRIPT.join('\n')}</code>
+      </pre>
+    </figure>
+  );
+}
+
 function Hero() {
   const {siteConfig} = useDocusaurusContext();
   return (
-    <header className={clsx('hero', styles.hero)}>
+    <header className={styles.hero}>
       <div className="container">
-        <Heading as="h1" className="hero__title">
+        <Heading as="h1" className={styles.wordmark}>
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link className="button button--primary button--lg" to="/docs/intro">
-            Get started
-          </Link>
-          <Link className="button button--secondary button--lg" to="/docs/concepts/sched-ext">
-            What's sched_ext?
-          </Link>
+        <p className={styles.tagline}>{siteConfig.tagline}</p>
+
+        <div className={styles.heroLower}>
+          <div className={styles.heroProse}>
+            <p>
+              Linux 6.12 made the CPU scheduler a BPF program the kernel loads,
+              verifies and unloads on demand. No custom kernel, no module, no
+              maintenance window.
+            </p>
+            <p>
+              schedkit handles everything around that: shipping a scheduler as
+              an OCI image, checking whether a host can run one, reporting what
+              is actually attached, and doing the same across a cluster.
+            </p>
+            <div className={styles.heroActions}>
+              <Link className="button button--primary button--lg" to="/docs/intro">
+                Introduction
+              </Link>
+              <Link
+                className="button button--outline button--lg"
+                to="/docs/concepts/sched-ext"
+              >
+                What is sched_ext?
+              </Link>
+            </div>
+          </div>
+          <div className={styles.heroAside}>
+            <Transcript />
+          </div>
         </div>
       </div>
     </header>
   );
 }
 
-function Projects() {
+/* ------------------------------------------------------------------ *
+ * Tools
+ * ------------------------------------------------------------------ */
+
+const TOOLS = [
+  {
+    name: 'schedctl',
+    line: 'The host-side CLI.',
+    alpha: false,
+    body: 'Verifies, pulls and runs an OCI-packaged sched_ext scheduler on a single machine, with a kernel preflight built in. Reaches for one scheduler for the length of a build, a game session, or a test run.',
+    install: 'sudo zypper in schedctl',
+    href: '/docs/schedctl/overview',
+  },
+  {
+    name: 'sked',
+    line: 'The Kubernetes operator.',
+    alpha: true,
+    body: 'A SchedExt resource names the OCI scheduler image; sked reconciles it into a privileged DaemonSet on every node it should run on. The cluster-native path — schedctl is not installed on the nodes.',
+    install: 'make deploy IMG=ghcr.io/schedkit/sked:latest',
+    href: '/docs/sked/overview',
+  },
+];
+
+function Tools() {
   return (
-    <section className={styles.projects}>
+    <section className={styles.section}>
       <div className="container">
-        <div className="row">
-          <div className="col col--6">
-            <Heading as="h2">schedctl</Heading>
-            <p>
-              The host-side CLI. Verifies, pulls, and runs an OCI-packaged
-              sched_ext scheduler, with built-in kernel preflight
-              (<code>schedctl doctor</code>) and discrepancy reporting
-              (<code>schedctl status</code>). Available on openSUSE Tumbleweed
-              and the AUR.
-            </p>
-            <Link className="button button--outline button--primary" to="/docs/schedctl/overview">
-              Read the docs
-            </Link>
-          </div>
-          <div className="col col--6">
-            <Heading as="h2">sked</Heading>
-            <p>
-              The Kubernetes operator. A <code>SchedExt</code> resource names
-              the OCI scheduler image you want to run; sked creates a
-              privileged DaemonSet that runs it on the cluster. Early-stage
-              and minimal today — the place to start if your nodes already
-              live in Kubernetes.
-            </p>
-            <Link className="button button--outline button--primary" to="/docs/sked/overview">
-              Read the docs
-            </Link>
-          </div>
-        </div>
+        <Heading as="h2" className={styles.sectionTitle}>
+          Two tools
+        </Heading>
+        <dl className={styles.tools}>
+          {TOOLS.map((tool) => (
+            <div key={tool.name} className={styles.tool}>
+              <dt className={styles.toolHead}>
+                <span className={styles.toolNameRow}>
+                  <span className={styles.toolName}>{tool.name}</span>
+                  {tool.alpha && (
+                    <span
+                      className={styles.toolBadge}
+                      title="Alpha: pre-production, not recommended for production use"
+                    >
+                      alpha
+                    </span>
+                  )}
+                </span>
+                <span className={styles.toolLine}>{tool.line}</span>
+              </dt>
+              <dd className={styles.toolBody}>
+                <p>{tool.body}</p>
+                <pre className={styles.install}>
+                  <code>
+                    <span className={styles.prompt}>$ </span>
+                    {tool.install}
+                  </code>
+                </pre>
+                <Link to={tool.href} className={styles.toolLink}>
+                  {tool.name} documentation
+                </Link>
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * Requirements
+ * ------------------------------------------------------------------ */
+
+/* Check IDs are the real ones from `schedctl doctor` (see commands.md). */
+const REQUIREMENTS: Array<[string, string, string]> = [
+  ['kernel.version', 'Linux 6.12 or later', 'The release that shipped sched_ext upstream.'],
+  ['kernel.config', 'CONFIG_SCHED_CLASS_EXT=y', 'With the CONFIG_BPF* flags and CONFIG_DEBUG_INFO_BTF for CO-RE programs.'],
+  ['caps.*', 'CAP_BPF, CAP_SYS_ADMIN, CAP_PERFMON', 'Verified by schedctl doctor. Under sked each scheduler runs in a privileged DaemonSet instead.'],
+  ['runtime.any', 'A reachable runtime socket', 'Podman or containerd, so the scheduler can be pulled as an OCI image.'],
+];
+
+function Requirements() {
+  return (
+    <section className={styles.section}>
+      <div className="container">
+        <Heading as="h2" className={styles.sectionTitle}>
+          What a host needs
+        </Heading>
+        <p className={styles.sectionLede}>
+          Each of these is a check ID that <code>schedctl doctor</code> reports
+          by name, and exits non-zero on when one fails.
+        </p>
+        <table className={styles.reqTable}>
+          <thead>
+            <tr>
+              <th scope="col">Check</th>
+              <th scope="col">Requires</th>
+              <th scope="col">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {REQUIREMENTS.map(([id, needs, note]) => (
+              <tr key={id}>
+                <td>
+                  <code>{id}</code>
+                </td>
+                <td>{needs}</td>
+                <td className={styles.reqNote}>{note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Where to start
+ * ------------------------------------------------------------------ */
+
+const ROUTES: Array<[string, string, string]> = [
+  [
+    'Understand the design first',
+    'What sched_ext is and is not, and why OCI ended up as the distribution format.',
+    '/docs/concepts/sched-ext',
+  ],
+  [
+    'One machine, right now',
+    'Install schedctl, run the preflight, attach a scheduler.',
+    '/docs/schedctl/installation',
+  ],
+  [
+    'Nodes already in Kubernetes',
+    'Install sked and declare a SchedExt resource.',
+    '/docs/sked/installation',
+  ],
+  [
+    'Package your own scheduler',
+    'The image layout that schedctl and sked both expect.',
+    '/docs/schedctl/packaging-a-scheduler',
+  ],
+];
+
+function Routes() {
+  return (
+    <section className={styles.section}>
+      <div className="container">
+        <Heading as="h2" className={styles.sectionTitle}>
+          Where to start
+        </Heading>
+        <ul className={styles.routes}>
+          {ROUTES.map(([when, what, href]) => (
+            <li key={href}>
+              <Link to={href} className={styles.route}>
+                <span className={styles.routeWhen}>{when}</span>
+                <span className={styles.routeWhat}>{what}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Page
+ * ------------------------------------------------------------------ */
 
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
       title={siteConfig.title}
-      description="OCI-packaged sched_ext schedulers, plus the tools to run them anywhere">
+      description="OCI-packaged sched_ext schedulers, plus the tools to run them anywhere"
+    >
       <Hero />
       <main>
-        <Projects />
+        <Tools />
+        <Requirements />
+        <Routes />
       </main>
     </Layout>
   );
