@@ -11,13 +11,6 @@ import styles from './index.module.css';
  * Hero
  * ------------------------------------------------------------------ */
 
-/*
- * Verbatim output of `sudo schedctl doctor` on a sched_ext-capable host
- * (running kernel 7.1.8-1-default). The check IDs match
- * docs/schedctl/commands.md. Keep this block a true screenshot of the tool:
- * if the output format changes, re-capture it rather than hand-editing the
- * values.
- */
 const DOCTOR_TRANSCRIPT: string[] = [
   '$ sudo schedctl doctor',
   '',
@@ -71,7 +64,7 @@ function Hero() {
           <div className={styles.heroProse}>
             <p>
               Linux 6.12 made the CPU scheduler a BPF program the kernel loads,
-              verifies and unloads on demand — no custom kernel, no module, no
+              verifies and unloads on demand. No custom kernel, no module, no
               maintenance window.
             </p>
             <p>
@@ -108,6 +101,7 @@ const TOOLS = [
   {
     name: 'schedctl',
     line: 'The host-side CLI.',
+    alpha: false,
     body: 'Verifies, pulls and runs an OCI-packaged sched_ext scheduler on a single machine, with a kernel preflight built in. Reaches for one scheduler for the length of a build, a game session, or a test run.',
     install: 'sudo zypper in schedctl',
     href: '/docs/schedctl/overview',
@@ -115,6 +109,7 @@ const TOOLS = [
   {
     name: 'sked',
     line: 'The Kubernetes operator.',
+    alpha: true,
     body: 'A SchedExt resource names the OCI scheduler image; sked reconciles it into a privileged DaemonSet on every node it should run on. The cluster-native path — schedctl is not installed on the nodes.',
     install: 'make deploy IMG=ghcr.io/schedkit/sked:latest',
     href: '/docs/sked/overview',
@@ -132,7 +127,17 @@ function Tools() {
           {TOOLS.map((tool) => (
             <div key={tool.name} className={styles.tool}>
               <dt className={styles.toolHead}>
-                <span className={styles.toolName}>{tool.name}</span>
+                <span className={styles.toolNameRow}>
+                  <span className={styles.toolName}>{tool.name}</span>
+                  {tool.alpha && (
+                    <span
+                      className={styles.toolBadge}
+                      title="Alpha: pre-production, not recommended for production use"
+                    >
+                      alpha
+                    </span>
+                  )}
+                </span>
                 <span className={styles.toolLine}>{tool.line}</span>
               </dt>
               <dd className={styles.toolBody}>

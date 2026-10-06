@@ -154,12 +154,33 @@
   margin: 0;
 }
 
+.toolNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
 .toolName {
   font-family: var(--ifm-font-family-monospace);
   font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--sk-fg);
+}
+
+/* Monochrome status pill: encodes maturity, adds no hue. */
+.toolBadge {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sk-fg-muted);
+  border: 1px solid var(--sk-line-strong);
+  background: var(--sk-surface);
+  padding: 0.1rem 0.4rem;
+  line-height: 1.5;
+  user-select: none;
 }
 
 .toolLine {
@@ -246,12 +267,12 @@
   letter-spacing: 0.12em;
   text-align: left;
   color: var(--sk-fg-subtle);
-  padding: 0.7rem 1rem 0.7rem 0;
+  padding: 0.7rem 0.8rem;
   border-bottom: 1px solid var(--sk-line);
 }
 
 .reqTable td {
-  padding: 0.85rem 1rem 0.85rem 0;
+  padding: 0.85rem 0.8rem;
   vertical-align: top;
   border-bottom: 1px solid var(--sk-line);
 }
