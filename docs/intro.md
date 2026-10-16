@@ -18,7 +18,7 @@ The documentation is split into three sections.
 
 **schedctl** documents the host-side command-line tool. If you have a single machine and you want to try out a different scheduler for the duration of a build, a game session, or a test run, this is what you're looking for.
 
-**sked** documents the Kubernetes operator. If your nodes already live in a cluster and you'd like to declare which scheduler runs on them as a Kubernetes resource, this is the layer for that. sked is at an early, deliberately-thin stage today — see its [overview](/docs/sked/overview) for what's actually implemented before planning a rollout.
+**sked** documents the Kubernetes operator. It uses cluster-scoped Scheduler resources to select node pools, verifies scheduler images, and reports DaemonSet rollout status. Start with the [overview](/docs/sked/overview) or [install it with Helm](./sked/installation).
 
 You can read the sections in order or jump straight to whichever tool you came here for. The Concepts pages are prerequisite-free; the project pages assume you've at least skimmed Concepts but try not to lean on it too hard.
 

@@ -6,67 +6,60 @@ sidebar_label: Architecture
 
 # Architecture overview
 
-This page is a single-screen-ish view of how the schedkit components fit together. If the Concepts pages on `sched_ext` and OCI explained the *what*, this one explains the *where*.
+schedkit has two tools for running OCI-packaged `sched_ext` CPU schedulers: schedctl on a host, and sked in Kubernetes. Both run scheduler images, but they manage them independently.
 
-## The two layers
+## On one host: schedctl
 
-schedkit is, deliberately, two pieces of software at two different layers.
+schedctl talks to a local Podman or containerd runtime. It verifies scheduler images, starts and stops containers, and provides host diagnostics and status commands.
 
-**schedctl** is a host-level CLI. It runs on a single machine, talks to a local container runtime (Podman or containerd), and is responsible for verifying the scheduler image's signature, pulling it, starting the binary in a privileged container, and managing its lifecycle. It has no opinion about whether your machine is part of a cluster. As far as schedctl is concerned, it's just a Linux box.
-
-**sked** is a Kubernetes operator. It exposes a CRD (`SchedExt`) that names the scheduler image you want to run, and creates a privileged DaemonSet that runs that image on every node the DaemonSet's pod-scheduling rules allow. The kubelet on each node pulls the image and starts the container; the kernel takes care of attaching `sched_ext` from there.
-
-The two projects are aligned in design — both run OCI-packaged sched_ext schedulers — but **independent in implementation today**. sked does not invoke schedctl, share its trust policy, or use its kernel preflight. A future version of the operator could plausibly use schedctl as the in-pod runtime (and pick up its signature verification and discrepancy reporting for free), but that integration does not exist now.
-
-## A diagram, in words
-
-On a single machine, the chain looks like this:
-
-```
-user → schedctl CLI → container runtime (Podman/containerd) → scheduler binary → sched_ext (kernel)
+```text
+user -> schedctl -> Podman/containerd -> scheduler binary -> sched_ext
 ```
 
-In a Kubernetes cluster, sked is the user-facing interface and the chain is shorter than you might expect:
+The CLI does not require Kubernetes. Use it for a workstation, a standalone server, or host management driven by scripts. See [schedctl](../schedctl/overview).
 
+## In Kubernetes: sked
+
+sked watches cluster-scoped `Scheduler` resources. Each names a scheduler image and can select a node pool, tolerate taints, and configure container arguments, environment, pull secrets, and resources.
+
+```text
+cluster administrator
+        |
+        v
+API server <-> sked admission webhook <-> trust policy + image registry
+        |
+        v
+Scheduler resource
+        |
+        v
+sked leader: assign nodes, verify image, reconcile workload
+        |
+        v
+DaemonSet in the configured workload namespace
+        |
+        v
+kubelet -> container runtime -> scheduler binary -> sched_ext
 ```
-cluster admin
-    ↓
-SchedExt CRD (in the API server)
-    ↓
-sked controller (one replica, control plane)
-    ↓
-DaemonSet  (one per SchedExt)
-    ↓
-kubelet → container runtime → scheduler binary → sched_ext (per node)
-```
 
-There is no per-node sked component. The kubelet runs the scheduler pod; the pod runs privileged; the binary inside attaches `sched_ext` directly. schedctl is not in this picture.
+The [Helm chart](../sked/installation) installs two controller replicas with leader election and a PodDisruptionBudget. Both replicas serve admission webhooks; only the leader reconciles. The kubelet runs the privileged scheduler pods directly. There is no per-node sked agent and no schedctl invocation.
 
-## What's in each repository
+sked verifies signatures at admission and during reconciliation, then places the verified digest in the DaemonSet. It resolves overlapping node selections by creation time and reports DaemonSet rollout counts, conditions, and events. It does not inspect node kernels: a ready pod is not proof that its scheduler attached.
 
-| Repository | Layer | Language | Role |
-| --- | --- | --- | --- |
-| [schedkit/schedctl](https://github.com/schedkit/schedctl) | Host | Go | CLI, container runtime client, scheduler lifecycle, cosign verification, kernel preflight |
-| [schedkit/sked](https://github.com/schedkit/sked) | Cluster | Go | kubebuilder operator: `SchedExt` CRD, controller that creates a privileged DaemonSet per resource |
-| [schedkit/plumbing](https://github.com/schedkit/plumbing) | — | JSON | Catalog manifest (mapping short names to image URIs) consumed by `schedctl list`/`run`/`versions` |
-| [schedkit/docs](https://github.com/schedkit/docs) | — | TypeScript | This site |
+See [sked architecture](../sked/architecture) for the reconcile loop and failure handling, and the [CRD reference](../sked/crds) for the API.
 
-The two code repositories are independently versioned and currently independent in their wire-level concerns: sked does not import schedctl as a Go module, nor does it shell out to it. Aligning their lifecycle and trust models is a deliberate longer-term direction; today they coexist rather than co-operate.
+## What the tools share
 
-## Why the layers are separate
+The common input is an OCI-packaged scheduler, not a controller-to-agent protocol. sked neither imports schedctl nor shells out to it. Both implement signature verification, but their trust-policy formats and defaults differ. Configuring one tool does not configure the other.
 
-There's a temptation, when designing this kind of system, to do everything in one binary. We didn't, for a few reasons.
+Do not let both manage a scheduler on the same node. sked's conflict handling only sees Scheduler resources; it cannot account for a scheduler started by schedctl or another host process.
 
-The single-machine use case is real and standalone. Plenty of people want to run a different scheduler on their workstation or on a single bare-metal box without any cluster involvement. Forcing them into a Kubernetes operator dependency would be perverse.
+Neither tool replaces Kubernetes pod scheduling. They manage Linux CPU schedulers, which allocate CPU time to threads after workloads have been placed on a node.
 
-The cluster use case has its own complexity surface — CRD design, controller patterns, RBAC, helm charts — that has nothing to do with `sched_ext` itself. Keeping it in a separate repo means we can iterate on it without disturbing schedctl, which can stay small and focused.
+## Repositories
 
-The boundary between the two is a stable contract (the schedctl CLI), not a private API. If you wanted to write a different orchestrator that drives schedctl from the outside — Nomad, a custom Ansible setup, whatever — schedctl is happy to be driven by it. We've kept the CLI deliberately scriptable for exactly this reason. (sked itself does not yet drive schedctl; it runs scheduler images directly via the kubelet. The contract is open and stable enough for an operator that *did* want to drive schedctl on each node to do so.)
-
-## What goes where
-
-A rough rule of thumb when deciding which repo a feature belongs in:
-
-- If it's about a single machine, it goes in schedctl.
-- If it requires knowing about more than one node, it goes in sked.
-- If the answer is "both" — kernel preflight, signature verification, lifecycle/discrepancy reporting — it lives in schedctl today. A longer-term goal is for sked to consume those by driving schedctl on each node, rather than reimplementing them.
+| Repository | Role |
+| --- | --- |
+| [schedkit/schedctl](https://github.com/schedkit/schedctl) | Host CLI, container runtime clients, image verification, and diagnostics. |
+| [schedkit/sked](https://github.com/schedkit/sked) | Scheduler CRD, operator, admission validation, trust policy, and Helm chart. |
+| [schedkit/plumbing](https://github.com/schedkit/plumbing) | Scheduler image publishing and the catalog mapping names to image references. |
+| [schedkit/docs](https://github.com/schedkit/docs) | This documentation site. |

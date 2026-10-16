@@ -5,133 +5,164 @@ title: Usage
 
 # Usage
 
-This page is a practical walkthrough: from a freshly-installed sked to a running scheduler on every node in the cluster.
+This walkthrough assumes sked is [installed](./installation) as release `sked` in `sked-system`, using the default trust policy and workload namespace. Adjust namespace arguments if your scheduler DaemonSets run elsewhere. Scheduler resources themselves are cluster-scoped.
 
-It assumes you've already installed the operator ([Installation](./installation)) and have `kubectl` access to the cluster. It also assumes you're comfortable with the operator's current scope: a single `SchedExt` resource creates a privileged DaemonSet that runs a `sched_ext` scheduler everywhere the DaemonSet's default pod-scheduling rules let it run. There is no node selector or priority on the CRD today — see [CRD reference](./crds) for the precise shape.
-
-## Step 1: confirm the operator is healthy
-
-Before applying any `SchedExt`, make sure the controller is up:
+## Check the controller and nodes
 
 ```bash
-kubectl get pods -n sked-system
-kubectl get crd schedexts.sked.schedkit.io
+kubectl rollout status deployment/sked-controller-manager -n sked-system --timeout=5m
+kubectl get crd schedulers.sked.schedkit.io
+kubectl get schedulers
 ```
 
-Look for one `sked-controller-manager-*` pod in `Running` and the CRD listed. If the controller pod is in `CrashLoopBackOff`, fix that before applying anything — without a controller, an applied `SchedExt` won't create its DaemonSet.
+Check existing Schedulers before adding one: an empty selector claims every node for conflict arbitration.
 
-## Step 2: confirm the nodes can run a sched_ext scheduler
-
-The operator does not preflight the kernel for you. The scheduler container will simply fail to attach if the kernel can't host it. A quick spot check on a node before rolling sked out widely:
+On each intended node, confirm kernel support and check whether another scheduler is already attached. From a shell on the node:
 
 ```bash
-kubectl debug node/<node-name> --image=alpine -- ls /host/sys/kernel/sched_ext
+ls /sys/kernel/sched_ext
+cat /sys/kernel/sched_ext/state
 ```
 
-(or SSH into the node and `ls /sys/kernel/sched_ext`). On every node where you'd run a scheduler, you want that directory to exist. If your fleet is heterogeneous, you'll want a node selector at the cluster level keeping the DaemonSet pods away from kernels that don't support sched_ext — see *Constraining where the scheduler runs* below.
+The directory's presence is a first check, not a guarantee that a particular scheduler is compatible. Stop schedulers managed outside sked before targeting those nodes. sked cannot arbitrate against schedctl or a manually started scheduler.
 
-## Step 3: apply your first `SchedExt`
+Label the nodes you have checked, replacing the example node name:
 
-Create a file called `scx-rusty.yaml`:
+```bash
+kubectl label node worker-1 schedkit.io/pool=batch
+```
+
+Repeat for the other nodes in the pool. A label does not prove kernel support; it is your declaration that those nodes are suitable.
+
+## Create a Scheduler
+
+Save as `scx-rusty.yaml`:
 
 ```yaml
 apiVersion: sked.schedkit.io/v1
-kind: SchedExt
+kind: Scheduler
 metadata:
   name: scx-rusty
-  namespace: default
 spec:
-  sched: ghcr.io/schedkit/scheds/scx_rusty:latest
+  sched: ghcr.io/schedkit/scx_rusty:latest
+  nodeSelector:
+    schedkit.io/pool: batch
 ```
 
-Apply it:
+The default policy allows this repository and requires a trusted signature. The reconciler resolves the tag to a verified digest. Use an explicit `@sha256:...` digest instead of `:latest` for a fixed deployment.
 
 ```bash
 kubectl apply -f scx-rusty.yaml
+kubectl get scheduler scx-rusty
+kubectl get daemonset scx-rusty -n sked-system
+kubectl get pods -n sked-system -l name=scx-rusty -o wide
+kubectl wait --for=condition=Ready scheduler/scx-rusty --timeout=5m
 ```
 
-Within a few seconds the controller will reconcile and create the DaemonSet:
+`kubectl get scheduler` shows Ready, Desired, Available, and Age. The DaemonSet should have a pod on each eligible node, excluding nodes assigned to an older Scheduler. Read all conditions even if the wait succeeds: a partially conflicting Scheduler can be ready on its remaining nodes while also degraded.
 
 ```bash
-kubectl get schedexts -A
-kubectl get daemonset scx-rusty -n default
-kubectl get pods -l name=scx-rusty -n default
+kubectl describe scheduler scx-rusty
+kubectl get scheduler scx-rusty -o jsonpath='{.status.resolvedImage}{"\n"}'
 ```
 
-You should see one DaemonSet, and one pod per node where the DaemonSet was scheduled. The pods are owned by the DaemonSet, which is owned by the `SchedExt`.
+## Verify the kernel state
 
-Important: `kubectl get schedexts` will not report any status today. The CRD has a status subresource declared but the controller never writes to it. To gauge health, look at the DaemonSet's `numberReady` / `desiredNumberScheduled` and the pods' state directly.
-
-## Step 4: verify on a node
-
-To confirm the scheduler is actually loaded on a node:
+DaemonSet readiness does not prove that the BPF scheduler attached. On each target node, inspect:
 
 ```bash
-kubectl exec -n default <pod-name> -- cat /sys/kernel/sched_ext/state
-kubectl exec -n default <pod-name> -- cat /sys/kernel/sched_ext/root/ops
+cat /sys/kernel/sched_ext/state
+cat /sys/kernel/sched_ext/root/ops
 ```
 
-Because the pod runs privileged, it has access to the host's `/sys` and the values you read are the kernel's view. `state` should be `enabled`, and `ops` should be the scheduler's struct_ops name.
-
-If `state` is `disabled`, look at the pod's logs:
+Expect `state` to be `enabled` and `ops` to name the scheduler you deployed. If the scheduler image contains `cat` and exposes those sysfs files, you can also read them from its pod:
 
 ```bash
-kubectl logs -n default <pod-name>
+kubectl exec -n sked-system <pod-name> -c scx -- cat /sys/kernel/sched_ext/state
+kubectl exec -n sked-system <pod-name> -c scx -- cat /sys/kernel/sched_ext/root/ops
 ```
 
-A scheduler container can fail to attach for the same reasons a host-side `schedctl run` can fail: BPF verifier rejecting the program, missing CONFIG_*, missing BTF, or LSM denials. The [schedctl troubleshooting guide](../schedctl/troubleshooting) covers the kernel-side modes; they apply identically here.
-
-## Common operations
-
-### Update a scheduler image
-
-Edit the resource and re-apply:
+If not, use a node shell. A privileged container is not a promise that the image includes debugging tools. For attachment failures, check the scheduler logs and node kernel logs:
 
 ```bash
-kubectl edit schedext scx-rusty
+kubectl logs -n sked-system <pod-name> -c scx
 ```
 
-Change `spec.sched`. The controller patches the DaemonSet, which triggers a rolling pod update. The default DaemonSet update strategy applies — that's what governs how the rollout proceeds. The operator does not currently expose any roll-out tuning of its own.
+The kernel checks in [schedctl troubleshooting](../schedctl/troubleshooting) also apply to scheduler images run by sked.
 
-### Stop a scheduler
+## Change configuration
 
-Delete the `SchedExt`:
+Edit `scx-rusty.yaml` and reapply it, or run:
 
 ```bash
-kubectl delete schedext scx-rusty
+kubectl edit scheduler scx-rusty
 ```
 
-The owner reference cascade deletes the DaemonSet and its pods. As pods exit, `sched_ext` ops detach in the kernel and the affected nodes revert to their default scheduling policy.
+Changing the image, arguments, environment, or other pod-template fields causes a DaemonSet rolling update. sked does not expose rollout tuning or automatic rollback. To revert, restore the previous Scheduler spec, preferably with its recorded image digest.
 
-### Constraining where the scheduler runs
+After an update, compare `status.observedGeneration` and each condition's `observedGeneration` with `metadata.generation`. A condition from an earlier generation may still be visible immediately after applying a change.
 
-Because the CRD has no `nodeSelector` field, you can't tell sked "only run on these nodes" via the resource itself. The current options are:
+### Tainted nodes
 
-1. **Taint the nodes you don't want the DaemonSet on.** Without a corresponding toleration on the pod template, the DaemonSet won't schedule there. The operator has no way to add tolerations today, so this is one-directional — you exclude nodes, you can't include otherwise-tainted nodes.
-2. **Run only one scheduler cluster-wide.** This is the simplest path and works fine when your cluster is homogeneous.
-3. **Wait for the CRD to grow these fields.** They're on the to-do list. Pinning yourself to clever workarounds is probably not worth it unless you have to ship today.
+Add a toleration to the Scheduler when the selected nodes have a matching taint:
 
-### Multiple scheduler images on different node sets
+```yaml
+spec:
+  sched: ghcr.io/schedkit/scx_rusty:latest
+  nodeSelector:
+    schedkit.io/pool: batch
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+```
 
-Today, ill-advised. The kernel attaches one `sched_ext` scheduler at a time per node, and applying two `SchedExt` resources without keeping their DaemonSet pods apart will land both on the same nodes — only one will attach, the other will fail. If you really need this before the CRD grows node selection, your options are:
+Keep the selector: a toleration permits placement but does not restrict it. Set these fields on the Scheduler, not on the generated DaemonSet or the chart's controller placement values.
 
-- Use node taints/labels and the cluster's own DaemonSet scheduling rules (which sked can't influence per-resource today) to ensure the two `SchedExt` resources' pods don't overlap. In practice that means you need to *patch* the generated DaemonSet to add a node selector after the fact, which is fragile.
-- Run only one `SchedExt` and accept a single cluster-wide scheduler.
+### Different schedulers on different pools
 
-## Things to know
+Create one Scheduler per pool, with non-overlapping selectors. For example, keep `scx-rusty` on `schedkit.io/pool=batch` and use a separate Scheduler for nodes labelled `schedkit.io/pool=latency`.
 
-A few practical notes that aren't quite "troubleshooting" but are worth absorbing early.
+If selectors overlap, the oldest Scheduler wins each node. Losers exclude conflict nodes or lose their entire DaemonSet if all selected nodes conflict. Conflicts appear in `Degraded` with reason `SchedulerConflict`. Tolerations and pod health do not affect the winner. See the [CRD reference](./crds#overlapping-selectors) before changing labels on a live pool.
 
-**There is no status to look at on the resource.** Until the controller writes status, `kubectl describe schedext` is mostly an echo of `spec`. Look at the DaemonSet and its pods for actual health.
+## Diagnose a failed deployment
 
-**There is no image signature verification on the cluster path.** schedctl verifies cosign signatures on the host; sked currently does not. If supply-chain integrity matters for your cluster, you'll want admission-controller-level image policy (e.g. `policy-controller`, `cosign-controller`) until the operator gains its own verification.
+Start with the resource, then the DaemonSet and pods:
 
-**Privileged pods are required.** The DaemonSet creates pods with `securityContext.privileged: true`. If your cluster's Pod Security admission level is set to `baseline` or `restricted`, the pods will be rejected. The `sked-system` namespace itself is *not* labelled to bypass admission, so the *namespace where you create `SchedExt` resources* needs to permit privileged workloads.
+```bash
+kubectl describe scheduler scx-rusty
+kubectl describe daemonset scx-rusty -n sked-system
+kubectl get pods -n sked-system -l name=scx-rusty -o wide
+kubectl get events -n default \
+  --field-selector involvedObject.kind=Scheduler,involvedObject.name=scx-rusty \
+  --sort-by=.metadata.creationTimestamp
+kubectl logs -n sked-system -l control-plane=controller-manager -c manager --tail=100
+```
 
-**`kubectl describe daemonset <name>`** is the most useful command when something looks wrong. The events show pull errors, admission rejections, and node-selection issues in plain language.
+Scheduler events live in `default` because the resource is cluster-scoped. Pod and DaemonSet events live in the workload namespace.
 
-## Where to next
+| Symptom | Check |
+| --- | --- |
+| `kubectl apply` is rejected | Webhook availability, spec validation, caller authorization, allowlist, registry access, and signature identity. Admission failure may mean no Scheduler exists yet. |
+| `ImageVerificationFailed` | Controller logs and [trust policy](./trust-policy). Existing workloads are not replaced on verification failure. |
+| `SchedulerConflict` | Other Schedulers' selectors and creation times; avoid overlap. |
+| `NoNodesScheduled` | Node labels, taints, tolerations, and DaemonSet events. |
+| Pods rejected by admission | The **workload namespace** must allow privileged containers. |
+| `ErrImagePull` / `ImagePullBackOff` | Pod events, the resolved image, and `spec.imagePullSecrets` in the workload namespace. |
+| `NodesUnavailable` or crashing pods | `kubectl describe pod`, container logs, node kernel support, and any competing scheduler outside sked. |
+| Ready pods but no attached scheduler | Kernel sysfs and logs. There is no kernel-aware readiness probe. |
 
-- [CRD reference](./crds) for the full field-by-field schema.
-- [Architecture](./architecture) if you want to understand what the controller is actually doing.
-- [schedctl troubleshooting](../schedctl/troubleshooting) if a node's scheduler refuses to attach — those are kernel-layer problems, not sked-layer ones.
+Do not patch the generated DaemonSet to fix its configuration; the controller will replace that spec. Use the Scheduler fields listed in the [CRD reference](./crds).
+
+## Stop a scheduler
+
+```bash
+kubectl delete scheduler scx-rusty
+kubectl wait --for=delete daemonset/scx-rusty -n sked-system --timeout=2m
+kubectl get pods -n sked-system -l name=scx-rusty
+```
+
+Kubernetes garbage-collects the owned DaemonSet and pods. Wait for the pods to terminate and check kernel state. The kernel returns to its default scheduling policy when the scheduler detaches, unless another scheduler attaches in its place. Deleting the winner can let a previously conflicting Scheduler claim those nodes.
+
+Deleting the operator's Helm release alone does **not** stop scheduler workloads. See [Uninstall](./installation#uninstall).

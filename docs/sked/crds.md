@@ -5,71 +5,145 @@ title: CRD reference
 
 # CRD reference
 
-This page documents the Custom Resources sked introduces. There is exactly one today.
+sked defines one custom resource: `Scheduler`. The trust policy is a ConfigMap, not another CRD.
 
-## `SchedExt`
+## `Scheduler`
 
-`SchedExt` is the operator's only CRD. It tells sked: "run *this* scheduler image as a privileged DaemonSet in this namespace."
-
-| | |
+| Property | Value |
 | --- | --- |
-| Group | `sked.schedkit.io` |
-| Version | `v1` |
-| Kind | `SchedExt` |
-| Plural | `schedexts` |
-| Singular | `schedext` |
-| Scope | Namespaced |
-| Subresources | `status` (declared, but currently never written to) |
+| API version | `sked.schedkit.io/v1` |
+| Kind / list kind | `Scheduler` / `SchedulerList` |
+| Plural / singular | `schedulers` / `scheduler` |
+| CRD name | `schedulers.sked.schedkit.io` |
+| Scope | Cluster |
+| Subresource | `status` |
+| Printer columns | Ready, Desired, Available, Age |
 
-The CRD has no short names, no printer columns, and no additional kubectl output customisation. `kubectl get schedexts` lists by name, age, and the standard metadata.
-
-### Example
+There are no short names. Scheduler objects have no namespace. Their DaemonSets run in the controller's workload namespace: the Helm release namespace by default, or the namespace set by `controller.workloadNamespace` / `--workload-namespace`.
 
 ```yaml
 apiVersion: sked.schedkit.io/v1
-kind: SchedExt
+kind: Scheduler
 metadata:
   name: scx-rusty
-  namespace: default
 spec:
-  sched: ghcr.io/schedkit/scheds/scx_rusty:latest
+  sched: ghcr.io/schedkit/scx_rusty:latest
+  nodeSelector:
+    schedkit.io/pool: batch
 ```
 
-Applying this causes the controller to create a DaemonSet named `scx-rusty` in the `default` namespace. Every node that the DaemonSet's pod-scheduling rules let it run on will end up with a privileged pod running the `scx_rusty` scheduler.
+This creates a DaemonSet named `scx-rusty` in the workload namespace, targeting nodes labelled `schedkit.io/pool=batch`, subject to taints and [conflict handling](#overlapping-selectors). Use a verified digest rather than a mutable tag when you need repeatable deployments.
 
-### Spec fields
+## Spec fields
 
-| Field | Type | Required | Description |
+| Field | Type | Required | Behaviour |
 | --- | --- | --- | --- |
-| `spec.sched` | string | yes | Fully-qualified OCI image reference for the scheduler. Used verbatim as the container image. |
+| `spec.sched` | string | Yes | OCI image reference. Tags are accepted; if a digest is supplied, it must be `sha256:` followed by exactly 64 hex characters. |
+| `spec.nodeSelector` | map of strings | No | Every label must match. An omitted or empty selector matches all nodes for conflict arbitration; pod placement also depends on tolerations and Kubernetes scheduling. |
+| `spec.tolerations` | Kubernetes `Toleration[]` | No | Passed to the pod. Allows placement on matching tainted nodes; does not select nodes. Standard DaemonSet tolerations also apply. |
+| `spec.args` | string array | No | Arguments for the `scx` container. The image's entrypoint is unchanged. |
+| `spec.env` | Kubernetes `EnvVar[]` | No | Container environment, including `valueFrom` references. |
+| `spec.imagePullSecrets` | `LocalObjectReference[]` | No | Named pull secrets in the **workload namespace**. Used by the kubelet, not by the controller's signature verifier. |
+| `spec.resources` | Kubernetes `ResourceRequirements` | No | Compute resources for the scheduler container, including requests and limits. These do not set CPU policy for other workloads. |
 
-That's the entire spec. There is no `imagePullPolicy`, no `nodeSelector`, no `tolerations`, no `priority`. If you need to constrain which nodes the scheduler runs on, do it at the cluster level (taint the nodes you don't want, or expect a future version of the CRD to expose these fields).
+No other scheduler configuration fields are defined. In particular, there is no `priority`, `imagePullPolicy`, `command`, `affinity`, `volumes`, `serviceAccountName`, probe configuration, or update strategy. Fields inherited from Kubernetes types may depend on cluster feature gates; sked does not provide a general-purpose pod template.
 
-There is also no validation on `spec.sched` — the field accepts any string. If the value isn't a valid image reference, the kubelet will fail to pull at pod creation time, and you'll see the error on the DaemonSet's pods rather than at admission.
+### Container configuration example
 
-### Status fields
+```yaml
+apiVersion: sked.schedkit.io/v1
+kind: Scheduler
+metadata:
+  name: scx-rusty-batch
+spec:
+  sched: ghcr.io/schedkit/scx_rusty:latest
+  nodeSelector:
+    schedkit.io/pool: batch
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+  args:
+    - --verbose
+  env:
+    - name: RUST_LOG
+      value: info
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+```
 
-`status` is declared on the type, the CRD has the `status` subresource enabled, and the operator never writes to it. Every `SchedExt` you create will report an empty `status: {}` block. Conditions, phase, and matched/running node counts are not reported today.
+The resource request is an example, not a sizing recommendation. Check the scheduler's own flags and memory requirements. Treat this as an alternative to the first example, not a second Scheduler for the same pool.
 
-This is one of the rougher edges of the current operator and is on the to-do list.
+### Validation
 
-### What gets created
+The CRD schema rejects empty or malformed image references and invalid digest formats. The validating webhook also checks:
 
-When you apply a `SchedExt`, the controller creates (or patches, on update) one resource:
+- node-selector label keys and values;
+- environment-variable names and duplicate names;
+- nonempty, valid image-pull-secret names;
+- the caller's identity, the image repository allowlist, and its signature according to the [trust policy](./trust-policy).
 
-A `DaemonSet` with:
+The webhook handles creates and updates with `failurePolicy: Fail`. If it cannot be reached or verification fails, the API request is rejected. It does not validate Scheduler deletion. Kubernetes still validates the generated DaemonSet and pods; admission of a Scheduler does not guarantee its pod configuration will run.
 
-- the same name and namespace as the `SchedExt`;
-- an owner reference to the `SchedExt` (so deleting the `SchedExt` cascades to deleting the DaemonSet and its pods);
-- a label `managed-by: sked-controller` on the DaemonSet itself;
-- a pod selector `matchLabels: {name: <schedext-name>}`;
-- pod template labels `name: <schedext-name>` and `managed-by: sked-controller`;
-- one container, named `scx`, with `image: <spec.sched>` and `securityContext.privileged: true`.
+## Status fields
 
-The DaemonSet has no env vars, no volumes, no init containers, no resource requests, and no node selector or tolerations on the pod template. Pod scheduling is whatever the cluster's defaults are.
+| Field | Meaning |
+| --- | --- |
+| `status.observedGeneration` | Scheduler generation most recently processed by the reconciler, including failed attempts. |
+| `status.resolvedImage` | Image reference last successfully written to the DaemonSet. Digest-pinned when signature verification is enabled; otherwise the requested reference. Cleared when all selected nodes are lost to conflicts. |
+| `status.nodes.desired` | DaemonSet `desiredNumberScheduled`. |
+| `status.nodes.ready` | DaemonSet `numberReady`. |
+| `status.nodes.available` | DaemonSet `numberAvailable`. |
+| `status.nodes.unavailable` | DaemonSet `numberUnavailable`. |
+| `status.conditions` | Conditions keyed by `type`, with `status`, `reason`, `message`, `observedGeneration`, and `lastTransitionTime`. |
 
-## Multiple `SchedExt` resources
+There is no phase or per-node status list. Counts come from the DaemonSet, not a count of kernels with an attached scheduler. After a reconcile failure, image and node counts may still describe the last successful reconciliation; read the conditions too.
 
-The CRD doesn't currently coordinate between resources. If you create two `SchedExt` resources and the resulting DaemonSet pods both end up on the same node, both will try to attach a `sched_ext` scheduler — and the kernel only attaches one at a time. The losing pod will fail to attach and presumably crashloop.
+### Conditions
 
-Until the operator gains real node-selection logic, the right way to use it is "one `SchedExt` per intended node set, with cluster-level rules (taints, labels) keeping their pods apart." If you only have one cluster-wide scheduler in mind, the simplest thing is also the working thing: one `SchedExt`, every node gets the same scheduler.
+| Type | Meaning when `True` |
+| --- | --- |
+| `Active` | The Scheduler has not lost all selected nodes to another Scheduler. It can also be true when no nodes match, or when image verification fails; it is not a health signal. |
+| `Ready` | The DaemonSet has observed its current generation, has at least one desired node, and all desired pods are updated and available. |
+| `Progressing` | The DaemonSet rollout is incomplete. |
+| `Degraded` | A conflict, reconcile failure, or unavailable pods need attention. |
+
+Common reasons are `ActiveScheduler`, `SchedulerConflict`, `NoNodesScheduled`, `RolloutInProgress`, `DaemonSetReady`, `NodesUnavailable`, `SpecInvalid`, `ImageVerificationFailed`, `ReconcileFailed`, and `ReconcileSucceeded`.
+
+With partial conflicts, `Active` remains true and `Degraded=True` reports `SchedulerConflict`. `Ready` can also be true if the rollout on the remaining nodes is complete. With no desired nodes, `Ready=False` reports `NoNodesScheduled`.
+
+:::warning
+`Ready=True` does not prove that the scheduler attached to the kernel. sked adds no kernel-aware readiness probe. Verify `/sys/kernel/sched_ext` on the nodes as described in [Usage](./usage#verify-the-kernel-state).
+:::
+
+## Generated workload
+
+Each Scheduler normally owns one DaemonSet with:
+
+- the Scheduler's name, in the configured workload namespace;
+- a controller owner reference to the cluster-scoped Scheduler;
+- `managed-by: sked-controller` on the DaemonSet;
+- pod labels `name: <scheduler-name>` and `managed-by: sked-controller`;
+- a selector matching the `name` label;
+- one privileged container named `scx`;
+- the spec fields above copied into the pod and container, plus node affinity excluding conflict nodes when needed.
+
+Kubernetes supplies the default DaemonSet rollout behaviour. Edit the Scheduler, not its generated DaemonSet: reconciliation replaces the DaemonSet spec. Deleting the Scheduler lets Kubernetes garbage-collect its DaemonSet and pods; sked has no custom cleanup finalizer.
+
+## Overlapping selectors
+
+For each node, the oldest matching Scheduler wins. Equal creation timestamps are ordered lexicographically by name. Schedulers being deleted are ignored.
+
+- **Partial overlap:** the losing Scheduler excludes conflict nodes through required node affinity on `kubernetes.io/hostname`, and runs on the remaining nodes.
+- **Complete overlap:** the losing Scheduler's DaemonSet is deleted. Its node counts become zero, `resolvedImage` is cleared, and `Active=False`, `Ready=False`, and `Degraded=True` report `SchedulerConflict`.
+
+Arbitration compares node labels only. It does not consider tolerations, kernel support, image validity, or pod health. An older Scheduler that cannot run can still block a newer one. Use non-overlapping selectors rather than relying on age as a priority mechanism. Label changes trigger reassignment, but pod termination and startup are asynchronous; this is not an atomic handoff.
+
+## Migrating from `SchedExt`
+
+The old namespaced `SchedExt` kind is not served by the current CRD. There is no conversion webhook or automatic workload adoption.
+
+Export the old resources before removing the old installation. Recreate each as a cluster-scoped `Scheduler`: change the kind, remove `metadata.namespace`, and add an explicit node selector. Check image references against the current trust policy. Stop the legacy DaemonSets before creating replacement workloads so both do not attempt to attach on the same nodes. Plan for a gap in `sched_ext` scheduling during the cutover.

@@ -5,48 +5,13 @@ title: Development
 
 # Development
 
-This page is for contributors to sked itself. If you're trying to use sked, [Usage](./usage) and [Installation](./installation) are the right places.
+Run these commands from the [sked repository](https://github.com/schedkit/sked), not this documentation repository.
 
-## Layout
+The module is `github.com/schedkit/sked`. The current checkout uses Go 1.27 and controller-runtime v0.25.2, with Kubebuilder v4 layout. Check `go.mod` and the Makefile for the versions required by the revision you are building.
 
-sked is a kubebuilder v4 project. The layout is the standard one:
+## Build
 
-```
-sked/
-├── api/v1/                 # CRD types (SchedExt)
-├── cmd/main.go             # the manager entrypoint (one binary)
-├── config/                 # kustomize manifests for deployment
-│   ├── crd/                # CRD YAML (controller-gen output)
-│   ├── default/            # the kustomize entrypoint installed by `make deploy`
-│   ├── manager/            # Deployment + Service + Service for metrics
-│   ├── rbac/               # ClusterRole, RoleBinding, ServiceAccount, leader-election RBAC
-│   ├── prometheus/         # ServiceMonitor (commented out by default)
-│   ├── webhook/            # webhook scaffolding (commented out by default)
-│   ├── network-policy/     # optional NetworkPolicies (commented out by default)
-│   └── samples/            # sample SchedExt YAML
-├── internal/controller/    # the reconciler
-├── test/e2e/               # ginkgo e2e suite (kind-based)
-├── hack/                   # boilerplate header for generated files
-├── Dockerfile              # single-stage builder + distroless runtime
-├── Makefile                # standard kubebuilder make targets
-├── go.mod
-└── PROJECT                 # kubebuilder project metadata
-```
-
-There is one binary, `manager`, built from `cmd/main.go`. The "agent" implied by older docs and earlier designs does not exist as a separate binary: the per-node component is the scheduler image itself, run as a privileged DaemonSet pod.
-
-## Module info
-
-- Module: `github.com/schedkit/sked`
-- Go: 1.22 (`go 1.22.0` in go.mod)
-- controller-runtime: v0.19.0
-- kubebuilder layout: `go.kubebuilder.io/v4`
-- API group: `sked.schedkit.io`, version `v1`
-- Single Kind: `SchedExt`
-
-## Building locally
-
-You'll need Go 1.22+, `make`, and either Docker or Podman for building images. For testing, [kind](https://kind.sigs.k8s.io/) is the path of least friction.
+Install Go and a C compiler for race-enabled tests. Docker is used for image and Kind tests; Helm is needed for chart tests. The Makefile downloads Go-based generation and test tools into `bin/` as needed.
 
 ```bash
 git clone https://github.com/schedkit/sked.git
@@ -54,96 +19,100 @@ cd sked
 make build
 ```
 
-`make build` runs `manifests`, `generate`, `fmt`, `vet`, then `go build -o bin/manager cmd/main.go`. The first call seeds tools (`kustomize`, `controller-gen`, `setup-envtest`, `golangci-lint`) into `./bin/`.
-
-To build a container image:
+`make build` regenerates manifests and deepcopy code, formats and vets Go code, then writes `bin/manager`.
 
 ```bash
-make docker-build IMG=<your-tag>
+make docker-build IMG=ghcr.io/your-org/sked:dev
+make docker-push IMG=ghcr.io/your-org/sked:dev
 ```
 
-Defaults to `IMG=controller:latest` if you don't override. The Makefile also exposes a `docker-buildx` target for multi-arch images (`linux/arm64,linux/amd64,linux/s390x,linux/ppc64le`).
+`CONTAINER_TOOL=podman` selects Podman for image targets, though the cluster tests use Docker and Kind. Published controller images target Linux AMD64 and ARM64.
 
-## Running against a cluster
+## Run in a development cluster
 
-The fastest dev loop runs the controller from your laptop against a real cluster:
+Install cert-manager, make the image available to the cluster, then install the local chart:
 
 ```bash
-make install              # install CRDs into the cluster
-make run                  # run the controller locally with `go run`
+helm install sked ./charts/sked \
+  --namespace sked-system --create-namespace \
+  --set image.repository=ghcr.io/your-org/sked \
+  --set image.tag=dev \
+  --wait --timeout 5m
 ```
 
-`make run` runs the same `cmd/main.go` you'd run in the manager pod, but against your local kubeconfig. Apply a `SchedExt` from another terminal and watch the reconcile log on stdout.
+Alternatively, use `make deploy IMG=ghcr.io/your-org/sked:dev` for Kustomize. Do not run both installations in one cluster.
 
-To deploy the controller into the cluster proper:
+For host-side debugging, `make install` installs only the CRD, and `make run` starts the manager with your kubeconfig. This is not a complete installation: the always-on webhook server needs `tls.crt` and `tls.key` under `/tmp/k8s-webhook-server/serving-certs`, and admission requests need a webhook endpoint reachable by the API server with the corresponding CA configuration. Set the workload and trust-policy namespaces explicitly when running outside a pod. Avoid running an unelected local reconciler alongside an installed controller.
+
+Kind is useful for API, reconciliation, and chart tests. Its nodes share the host kernel; Kind does not supply `sched_ext` support. Tests that establish actual attachment need a compatible host kernel, scheduler image, and runtime permissions. A passing chart test alone does not establish kernel compatibility.
+
+## Generate manifests
+
+After changing API types or generation markers:
 
 ```bash
-make deploy IMG=<your-tag>
+make generate
+make manifests
+make helm-sync
 ```
 
-`make deploy` patches `config/manager` with the image you pass, then applies `config/default`. `make undeploy` reverses it.
+Generated outputs include:
 
-Note: kind nodes don't have `sched_ext` and the kernel can't host a `sched_ext` scheduler regardless. For testing the *operator's* logic — that the right DaemonSet gets created — kind is fine. For end-to-end testing with an actual scheduler attached, you need a cluster running on machines (or VMs) with `sched_ext` kernels.
+- `api/v1/zz_generated.deepcopy.go`
+- `config/crd/bases/sked.schedkit.io_schedulers.yaml`
+- `config/rbac/role.yaml`
+- `config/webhook/manifests.yaml`
+- `charts/sked/crds/` and `charts/sked/files/`
 
-## Code generation
+Edit the API, markers, or source files under `config/`, not the generated chart copies. `make verify-generated` fails if regenerated files under `api/` or `config/` have uncommitted changes; `make verify-helm` checks chart copies. Include generated changes with the source changes.
 
-CRD types live in `api/v1/`. After editing a type:
+## Test
 
 ```bash
-make generate             # regenerate zz_generated.deepcopy.go
-make manifests            # regenerate CRD YAML and RBAC
+make test
+make coverage
+go build ./...
+make lint
+make test-helm
 ```
 
-Both invocations are `controller-gen` wrappers (`v0.16.4` is pinned by the Makefile). The build target depends on these, so `make build` and `make test` regenerate before running. Commit the regenerated files alongside your type changes; CI will fail if they drift.
+- `make test` runs tests excluding `/e2e`, with the race detector and an envtest API server. It writes `cover.out`.
+- `make coverage` checks total statement coverage against a 40% minimum. Set `COVERAGE_THRESHOLD` to try another threshold.
+- `make lint` runs the pinned golangci-lint version; `make lint-fix` applies supported automatic fixes.
+- `make test-helm` checks generated chart files, lints the chart, and tests rendered resources against Kustomize. CI tests Helm 3 and 4.
 
-## Tests
+Cluster tests have separate entrypoints:
 
 ```bash
-make test                 # unit tests + envtest-backed integration
-make test-e2e             # full kind cluster, ginkgo
+make test-e2e
+make test-helm-e2e
 ```
 
-`make test` runs `go test` with `KUBEBUILDER_ASSETS` pointed at a downloaded `setup-envtest` binary, which spins up a local etcd + apiserver pair to test the reconciler against. It excludes the `test/e2e` package.
+`make test-e2e` expects an existing Kind cluster named `kind`; it builds and loads the manager image and deploys test dependencies. Prometheus and cert-manager installation can be skipped with `PROMETHEUS_INSTALL_SKIP=true` and `CERT_MANAGER_INSTALL_SKIP=true` when those dependencies are already available.
 
-`make test-e2e` requires a running kind cluster (`kind create cluster`). It builds the manager image, loads it into kind, deploys, and runs the ginkgo suite. By default it also installs Prometheus Operator and CertManager — both can be skipped with environment variables:
+`make test-helm-e2e` creates a temporary Kind cluster with two workers, exercises installation, leader failover, eviction protection, upgrade, rollback, and uninstall, then removes the cluster.
+
+## Logging
+
+The default is newline-delimited Slog JSON at info level on stderr. For local debugging, pass:
+
+```text
+--log-format=text --log-level=debug
+```
+
+`--log-level=debug` enables Logr `V(1)` through `V(4)`. Use `--log-verbosity=2` instead for an exact `V(2)` threshold. Do not explicitly combine `--log-level` and `--log-verbosity`; startup rejects that configuration. All legacy `--zap-*` flags are rejected too.
+
+JSON fields include `time`, `level`, `msg`, optional `logger`, and `err`. Logger names are slash-separated and severity names use Slog's native form. No-op reconciles log at `V(1)`; workload changes remain visible at info.
+
+Use `log.FromContext(ctx)` to preserve reconcile context. Log object references or selected fields rather than whole Kubernetes objects. Do not log Secret contents or complete trust policies. See the [upstream logging reference](https://github.com/schedkit/sked#controller-logging) for migration details.
+
+## Package a release
 
 ```bash
-PROMETHEUS_INSTALL_SKIP=true CERT_MANAGER_INSTALL_SKIP=true make test-e2e
+make build-installer IMG=ghcr.io/your-org/sked:dev
+bash hack/package-helm.sh v1.2.3 /tmp/sked-chart
 ```
 
-## Code style
+The first command renders `dist/install.yaml`. The second illustrates chart packaging for a release tag: `v1.2.3` produces chart version `1.2.3` and `appVersion: v1.2.3` without changing the checked-in `Chart.yaml`.
 
-Standard Go style plus what `golangci-lint` enforces. The Makefile pins lint version `v1.59.1`.
-
-- `make fmt` and `make vet` run before `make build`. Don't push code that fails them.
-- `make lint` for the full linter set.
-- `make lint-fix` applies the auto-fixable subset.
-
-Project-shape opinions:
-
-- Keep the reconciler small. Right now it's about 60 lines; if it grows past ~150, that's a sign to factor.
-- Avoid log-and-return-nil. If reconciliation can't proceed, return the error so the manager can requeue.
-- New fields on `SchedExtSpec` need a real reason — once a field is published it has to be supported. New CRDs even more so.
-
-## Manifests
-
-The `make manifests` target regenerates:
-
-- `config/crd/bases/sked.schedkit.io_schedexts.yaml` — the CRD itself.
-- `config/rbac/role.yaml` — the ClusterRole derived from `+kubebuilder:rbac` markers in `internal/controller/`.
-
-Note that the rbac markers in the reconciler currently only declare verbs on `schedexts*` resources. The reconciler creates DaemonSets, but no RBAC marker covers that — so the generated `role.yaml` does not authorise DaemonSet writes. Adding the missing marker (and regenerating) is on the to-do list. Until it's done, real-cluster installs need a kustomize patch granting `apps/daemonsets` to the controller's ClusterRole.
-
-## Building a single-file installer
-
-```bash
-make build-installer IMG=<your-tag>
-```
-
-Writes `dist/install.yaml`, the kustomize-rendered output of `config/default` with the controller image patched. This is the file to ship for users who want a single `kubectl apply -f` install.
-
-## Submitting changes
-
-Fork, branch, PR. One logical change per PR. Tests for new behaviour. Reasonable commit messages.
-
-If your change crosses the schedctl/sked boundary — for example, growing schedctl with a feature that the operator wants to consume — expect that to be coordinated work across the two repos. Today the two are independent (sked does not depend on schedctl as a Go module), so the integration is mostly conceptual; that may change as the two converge.
+The release workflow publishes and signs the controller image, attaches the chart to the GitHub Release, and publishes it to `https://charts.schedkit.io`. Chart and controller versions are released together. Follow the [release instructions](https://github.com/schedkit/sked#releases-and-helm-repository) for tag rules and repository setup.
