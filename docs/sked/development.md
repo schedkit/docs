@@ -7,7 +7,7 @@ title: Development
 
 Run these commands from the [sked repository](https://github.com/schedkit/sked), not this documentation repository.
 
-The module is `github.com/schedkit/sked`. The current checkout uses Go 1.27 and controller-runtime v0.25.2, with Kubebuilder v4 layout. Check `go.mod` and the Makefile for the versions required by the revision you are building.
+The module is `github.com/schedkit/sked`, built with Go 1.27 and controller-runtime v0.25.2. Check `go.mod` and the Makefile when building a different revision.
 
 ## Build
 
@@ -42,9 +42,15 @@ helm install sked ./charts/sked \
 
 Alternatively, use `make deploy IMG=ghcr.io/your-org/sked:dev` for Kustomize. Do not run both installations in one cluster.
 
-For host-side debugging, `make install` installs only the CRD, and `make run` starts the manager with your kubeconfig. This is not a complete installation: the always-on webhook server needs `tls.crt` and `tls.key` under `/tmp/k8s-webhook-server/serving-certs`, and admission requests need a webhook endpoint reachable by the API server with the corresponding CA configuration. Set the workload and trust-policy namespaces explicitly when running outside a pod. Avoid running an unelected local reconciler alongside an installed controller.
+For host-side debugging, `make install` installs only the CRD, and `make run` starts the manager with your kubeconfig. You must also:
 
-Kind is useful for API, reconciliation, and chart tests. Its nodes share the host kernel; Kind does not supply `sched_ext` support. Tests that establish actual attachment need a compatible host kernel, scheduler image, and runtime permissions. A passing chart test alone does not establish kernel compatibility.
+- Provide `tls.crt` and `tls.key` under `/tmp/k8s-webhook-server/serving-certs`.
+- Configure an admission webhook endpoint the API server can reach, with the matching CA.
+- Set the workload and trust-policy namespaces explicitly.
+
+Do not run an unelected local reconciler alongside an installed controller.
+
+Kind nodes share the host kernel. API and chart tests can run without `sched_ext`, but attachment tests need a compatible host kernel, scheduler image, and runtime permissions.
 
 ## Generate manifests
 
@@ -81,7 +87,7 @@ make test-helm
 - `make lint` runs the pinned golangci-lint version; `make lint-fix` applies supported automatic fixes.
 - `make test-helm` checks generated chart files, lints the chart, and tests rendered resources against Kustomize. CI tests Helm 3 and 4.
 
-Cluster tests have separate entrypoints:
+Run cluster tests separately:
 
 ```bash
 make test-e2e
@@ -113,6 +119,6 @@ make build-installer IMG=ghcr.io/your-org/sked:dev
 bash hack/package-helm.sh v1.2.3 /tmp/sked-chart
 ```
 
-The first command renders `dist/install.yaml`. The second illustrates chart packaging for a release tag: `v1.2.3` produces chart version `1.2.3` and `appVersion: v1.2.3` without changing the checked-in `Chart.yaml`.
+The first command writes `dist/install.yaml`. The second packages chart version `1.2.3` with `appVersion: v1.2.3`, without changing the checked-in `Chart.yaml`. Replace the example tag with your release tag.
 
 The release workflow publishes and signs the controller image, attaches the chart to the GitHub Release, and publishes it to `https://charts.schedkit.io`. Chart and controller versions are released together. Follow the [release instructions](https://github.com/schedkit/sked#releases-and-helm-repository) for tag rules and repository setup.

@@ -1,9 +1,15 @@
 # Static images
 
-This directory holds static assets served at the site root. The site config currently expects:
+These assets are served under `/img/`.
 
-- `logo.svg` — used in the navbar. A placeholder is committed; replace it with a real logo when one exists.
-- `favicon.ico` — favicon. **Not yet committed.** Generate one (e.g. with [realfavicongenerator.net](https://realfavicongenerator.net/)) and drop it here, or remove the `favicon` reference from `docusaurus.config.ts` until you have one.
-- `social-card.png` — used as the OpenGraph/Twitter card image. **Not yet committed.** A 1200×630 PNG is the standard size.
+## Homepage artwork
 
-Until `favicon.ico` and `social-card.png` exist, the build will succeed but the social/favicon experience will be empty. That's fine for an internal preview but worth fixing before the site goes wide.
+`scheduler-shipment.svg` shows an OCI scheduler package arriving at a Linux host. The illustrated socket represents attachment through `sched_ext`; it is not a hardware component.
+
+The homepage imports the SVG inline so its `--sk-*` colours follow the site theme. Colour fallbacks support standalone use. The file includes a title and description for screen readers and uses system fonts, without scripts or external images.
+
+## Site assets
+
+- `logo.svg` is used in the navbar.
+- `social-card.png` is the OpenGraph/Twitter preview image; `social-card.svg` is its editable source.
+- `favicon.ico` is referenced by `docusaurus.config.ts` but is missing. Add the file or remove the reference.

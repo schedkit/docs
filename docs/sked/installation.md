@@ -50,7 +50,7 @@ controller:
   workloadNamespace: schedulers
 ```
 
-Create `schedulers` first and configure its admission policy to permit privileged workloads. Helm does not create a custom workload namespace. Secrets and ConfigMaps referenced by Scheduler pods must exist there too. Choose the namespace before creating Schedulers; changing it is not a workload migration mechanism.
+Create `schedulers` and configure it to permit privileged pods before installing the release. Helm does not create a custom workload namespace. Put the pods' referenced Secrets and ConfigMaps there too. Changing `controller.workloadNamespace` later does not move existing DaemonSets.
 
 Common values:
 
@@ -73,7 +73,7 @@ Common values:
 
 The [chart values](https://github.com/schedkit/sked/blob/main/charts/sked/values.yaml) list all settings.
 
-Two schedulable nodes are needed for protection against a node failure. The default spreading rule allows both replicas on one node. The PDB protects against voluntary evictions, not node failures or direct deletion. More replicas add webhook capacity and failover options, not reconciliation throughput. For a single-replica development install, set `replicaCount: 1` and consider disabling the PDB to allow drains.
+Use at least two schedulable nodes so the replicas can run on separate hosts. The default spreading rule still allows both on one node. The PDB covers voluntary evictions, not node failures or direct deletion. Extra replicas do not increase reconciliation throughput. For a single-replica development install, set `replicaCount: 1`; disable the PDB if you need to drain that node.
 
 The published `latest` and `main` image tags follow the main branch, not the latest release. Release charts select the matching release image. Prefer a release or digest over a moving tag.
 
@@ -122,7 +122,7 @@ kubectl get crd schedulers.sked.schedkit.io
 kubectl get certificate -n sked-system
 ```
 
-The certificate command applies to cert-manager installs. If pods cannot start, inspect pod events for image-pull or missing certificate Secret errors. If Scheduler admission fails, check the webhook Service, certificate readiness, and controller logs. See [Usage](./usage) to create the first Scheduler and verify admission as well as reconciliation.
+The certificate command applies to cert-manager installs. If pods cannot start, inspect pod events for image-pull or missing certificate Secret errors. If Scheduler admission fails, check the webhook Service, certificate readiness, and controller logs. Next, [create a Scheduler](./usage) to test admission and workload creation.
 
 ## Install with Kustomize
 
@@ -179,6 +179,6 @@ kubectl wait --for=delete daemonset/scx-rusty -n sked-system --timeout=2m
 helm uninstall sked --namespace sked-system
 ```
 
-Repeat the deletion for each Scheduler you intend to stop, using the configured workload namespace. Check that the pods have terminated before treating the nodes as returned to their default CPU scheduler.
+Repeat the deletion for each Scheduler you intend to stop, using the configured workload namespace. Wait for the pods to terminate, then check the nodes' kernel scheduler state.
 
 For a Kustomize installation, `make undeploy` deletes the default overlay, **including the CRD and namespace**. Unlike Helm uninstall, it removes all Scheduler objects and their owned workloads. Deleting `schedulers.sked.schedkit.io` manually has the same cluster-wide effect on Scheduler objects. Export anything you need to retain before deleting the CRD.

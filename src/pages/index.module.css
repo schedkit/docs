@@ -1,216 +1,217 @@
-/**
- * Homepage styles. Scoped to src/pages/index.tsx.
- *
- * Structure comes from type scale and 1px rules. No grids, no glow, no pills,
- * no rounded cards, no hover lift, no colour.
- */
+/* Homepage layout and illustration styles. */
 
-.hero {
-  padding: 4.5rem 0 4rem;
-  border-bottom: 1px solid var(--sk-line);
+.home {
+  width: min(100% - 3rem, 72rem);
+  margin-inline: auto;
+  padding-bottom: 2rem;
 }
 
-/*
- * The type scale is the whole design: this is the biggest thing on the site.
- * It stays grey — the navbar logo is the only place the accent is allowed to
- * sit beside the product name, and two blues competing for the same wordmark
- * would undo the rule.
- */
-.wordmark {
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  align-items: center;
+  gap: 2.5rem;
+  padding-block: clamp(3rem, 6vw, 5.5rem) 3.5rem;
+}
+
+.eyebrow {
   margin: 0 0 1.25rem;
-  font-size: clamp(3.4rem, 11vw, 7.5rem);
-  font-weight: 700;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sk-fg-subtle);
+}
+
+.wordmark {
+  margin: 0 0 1.6rem -0.045em;
+  font-size: clamp(4.5rem, 9.5vw, 7.25rem);
+  font-weight: 800;
   line-height: 0.9;
-  letter-spacing: -0.055em;
-  color: var(--sk-fg);
+  letter-spacing: -0.065em;
 }
 
 .tagline {
-  margin: 0 0 3rem;
-  max-width: 28ch;
-  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.85rem, 3.2vw, 2.6rem);
   font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.03em;
-  color: var(--sk-fg);
-  text-wrap: balance;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
 }
 
-.heroLower {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 4rem;
-  align-items: start;
+.tagline span {
+  color: var(--sk-accent);
 }
 
-.heroProse p {
-  margin: 0 0 1rem;
-  max-width: 54ch;
+.heroDescription {
+  max-width: 38ch;
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
   color: var(--sk-fg-muted);
 }
 
 .heroActions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
-}
-
-/* ---- Transcript ---- */
-
-.transcript {
-  margin: 0;
-  border: 1px solid var(--sk-line);
-  background: var(--sk-surface);
-}
-
-.transcriptBar {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.3rem 0.4rem 0.3rem 0.8rem;
-  border-bottom: 1px solid var(--sk-line);
+  flex-wrap: wrap;
+  gap: 1.25rem 1.75rem;
+  margin-top: 2rem;
 }
 
-.transcriptTitle {
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+.heroActions :global(.button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.9rem 1.3rem;
+  font-size: 0.95rem;
+}
+
+.artwork {
+  margin: 0;
+  min-width: 0;
+}
+
+.schematic {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.artwork figcaption {
+  max-width: 52ch;
+  margin: 1rem auto 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--sk-line);
+  font-size: 0.75rem;
+  line-height: 1.5;
   color: var(--sk-fg-subtle);
 }
 
-.transcriptButton {
-  flex: 0 0 auto;
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--sk-line-strong);
-}
-
-.transcriptBody {
-  margin: 0;
-  padding: 1rem 1.1rem;
-  overflow-x: auto;
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.78rem;
-  line-height: 1.7;
-}
-
-.transcriptBody code {
-  display: block;
-  background: transparent;
-  border: 0;
+.artwork figcaption code {
   padding: 0;
+  background: transparent;
   font-size: inherit;
-  white-space: pre;
-  color: var(--sk-fg);
+  color: inherit;
 }
-
-/* ---- Sections ---- */
 
 .section {
-  padding: 4rem 0;
-  border-bottom: 1px solid var(--sk-line);
+  padding-block: 2rem 0;
+  margin-top: 4.5rem;
+  border-top: 2px solid var(--sk-fg);
 }
 
-.section:last-child {
-  border-bottom: 0;
+.hero + .section {
+  margin-top: 0;
 }
 
-.sectionTitle {
-  margin: 0 0 2rem;
-  font-size: clamp(1.6rem, 3.4vw, 2.25rem);
+.sectionHead {
+  margin-bottom: 2.25rem;
+}
+
+.sectionHead .eyebrow {
+  margin-bottom: 0.75rem;
+}
+
+.sectionHead h2 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3.5vw, 2.85rem);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.textLink {
   color: var(--sk-fg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--sk-line-strong);
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1px;
 }
 
-.sectionLede {
-  margin: -1.25rem 0 2rem;
-  max-width: 56ch;
-  color: var(--sk-fg-muted);
+.textLink:hover {
+  color: var(--sk-accent);
+  text-decoration-color: currentColor;
 }
-
-/* ---- Tools ---- */
 
 .tools {
-  margin: 0;
-  border-top: 1px solid var(--sk-line-strong);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3rem;
 }
 
 .tool {
-  display: grid;
-  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
-  gap: 2rem;
-  padding-block: 2rem;
-  border-bottom: 1px solid var(--sk-line);
+  min-width: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sk-line-strong);
 }
 
-.toolHead {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  margin: 0;
+.toolScope {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  color: var(--sk-fg-subtle);
 }
 
 .toolNameRow {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .toolName {
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--sk-fg);
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 
-/* Monochrome status pill: encodes maturity, adds no hue. */
 .toolBadge {
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--sk-line-strong);
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--sk-fg-muted);
-  border: 1px solid var(--sk-line-strong);
-  background: var(--sk-surface);
-  padding: 0.1rem 0.4rem;
-  line-height: 1.5;
-  user-select: none;
-}
-
-.toolLine {
-  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
   color: var(--sk-fg-subtle);
 }
 
-.toolBody {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1.1rem;
+.toolDescription {
+  margin: 0 0 1.5rem;
+  color: var(--sk-fg-muted);
+  line-height: 1.6;
 }
 
-.toolBody p {
-  margin: 0;
-  max-width: 58ch;
+.installNote {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--sk-fg-subtle);
+}
+
+.installNote a {
   color: var(--sk-fg-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.installNote a:hover {
+  color: var(--sk-accent);
 }
 
 .install {
-  margin: 0;
   max-width: 100%;
-  padding: 0.6rem 0.85rem;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.1rem;
   border: 1px solid var(--sk-line);
   background: var(--sk-surface);
   overflow-x: auto;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
+  line-height: 1.8;
 }
 
 .install code {
@@ -227,148 +228,222 @@
   user-select: none;
 }
 
-/* Same rule as the doc pages: blue marks a pointer, never a decoration. */
-.toolLink {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--sk-accent);
-  text-decoration: underline;
-  text-decoration-color: var(--sk-line-strong);
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1px;
-  transition: text-decoration-color 120ms ease;
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.toolLink:hover {
-  color: var(--sk-accent);
-  text-decoration-color: var(--sk-accent);
+.steps li {
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--sk-line-strong);
 }
 
-/* ---- Requirements table ---- */
+.steps .stepLabel {
+  margin: 0 0 1rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  color: var(--sk-fg-subtle);
+}
+
+.stepLabel span {
+  margin-right: 0.5rem;
+  color: var(--sk-accent);
+}
+
+.steps h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.4rem;
+  letter-spacing: -0.03em;
+}
+
+.steps p {
+  margin: 0 0 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--sk-fg-muted);
+}
+
+.requirements {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.requirements .sectionHead {
+  margin: 0;
+}
+
+.sectionLede {
+  max-width: 46ch;
+  margin: 1.25rem 0 1rem;
+  color: var(--sk-fg-muted);
+}
+
+.sectionNote {
+  max-width: 52ch;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--sk-fg-subtle);
+}
 
 .reqTable {
   display: table;
   width: 100%;
   margin: 0;
-  font-size: 0.92rem;
   border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.reqTable tr,
+.reqTable tr:nth-child(2n) {
+  background: transparent;
+  border: 0;
+}
+
+.reqTable th,
+.reqTable td {
+  padding: 1rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--sk-line);
+  vertical-align: top;
+  text-align: left;
+}
+
+.reqTable tr:first-child > * {
   border-top: 1px solid var(--sk-line-strong);
 }
 
-.reqTable thead,
-.reqTable tbody tr:nth-child(2n) {
-  background: transparent;
-}
-
 .reqTable th {
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.68rem;
+  width: 7.5rem;
+  padding-right: 1rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  text-align: left;
-  color: var(--sk-fg-subtle);
-  padding: 0.7rem 0.8rem;
-  border-bottom: 1px solid var(--sk-line);
 }
 
 .reqTable td {
-  padding: 0.85rem 0.8rem;
-  vertical-align: top;
-  border-bottom: 1px solid var(--sk-line);
-}
-
-.reqTable tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.reqTable td code {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  font-size: 0.85rem;
-  color: var(--sk-fg);
-}
-
-.reqNote {
   color: var(--sk-fg-muted);
+  overflow-wrap: anywhere;
 }
-
-/* ---- Routes ---- */
 
 .routes {
-  list-style: none;
   margin: 0;
   padding: 0;
+  list-style: none;
   border-top: 1px solid var(--sk-line-strong);
 }
 
 .route {
   display: grid;
-  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
-  gap: 2rem;
-  padding-block: 1.4rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding-block: 1.2rem;
   border-bottom: 1px solid var(--sk-line);
-  color: inherit;
-  transition: color 120ms ease;
-}
-
-.route:hover {
-  color: inherit;
-  text-decoration: none;
-}
-
-.routeWhen {
-  font-weight: 600;
   color: var(--sk-fg);
 }
 
-.route:hover .routeWhen {
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-  text-decoration-color: var(--sk-accent);
+.route:hover {
+  color: var(--sk-accent);
+  text-decoration: none;
 }
 
-.routeWhat {
+.routeTitle {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.route:hover .routeTitle {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.routeDetail {
+  font-size: 0.9rem;
   color: var(--sk-fg-muted);
 }
 
-/* ------------------------------------------------------------------ *
- * Responsive
- * ------------------------------------------------------------------ */
+.routeArrow {
+  color: var(--sk-accent);
+}
 
-@media screen and (max-width: 996px) {
+@media (max-width: 996px) {
   .hero {
-    padding: 3rem 0;
+    gap: 1rem;
   }
 
-  .tagline {
-    margin-bottom: 2rem;
+  .heroActions {
+    gap: 1rem;
   }
 
-  .heroLower {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
+  .tools,
+  .requirements {
+    gap: 2rem;
   }
 
-  .section {
-    padding: 3rem 0;
-  }
-
-  .tool,
-  .route {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
+  .steps {
+    gap: 1.5rem;
   }
 }
 
-@media screen and (max-width: 576px) {
-  .heroActions {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    padding-block: 3rem 2.5rem;
   }
 
-  .heroActions :global(.button) {
-    width: 100%;
+  .wordmark {
+    font-size: clamp(4.5rem, 17vw, 7.25rem);
+  }
+
+  .tagline {
+    font-size: clamp(1.9rem, 6vw, 2.6rem);
+  }
+
+  .artwork {
+    width: min(100%, 30rem);
+    justify-self: center;
+  }
+
+  .tools,
+  .requirements,
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .section {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+  }
+
+  .route {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.2rem 1rem;
+  }
+
+  .routeDetail {
+    grid-column: 1;
+  }
+
+  .routeArrow {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 400px) {
+  .home {
+    width: calc(100% - 2rem);
+  }
+
+  .reqTable th {
+    width: 6rem;
+    padding-right: 0.75rem;
   }
 }

@@ -6,26 +6,20 @@ slug: /intro
 
 # Introduction
 
-schedkit is a small ecosystem of tools for distributing, running, and orchestrating Linux CPU schedulers built on top of `sched_ext`.
+schedkit distributes and runs Linux `sched_ext` CPU schedulers as OCI images.
 
-The kernel side of pluggable schedulers is solved: recent Linux kernels let you attach a BPF-based scheduler at runtime without rebooting, recompiling, or shipping a custom kernel module. The pieces that aren't solved by the kernel are the boring-but-important ones around it: how do you ship a scheduler binary, how do you decide which one is running on a given machine, how do you roll back when something misbehaves, and how do you do any of this across more than a single host. That's the problem space schedkit lives in.
+On a kernel with `sched_ext` support, a BPF-based scheduler can attach at runtime without a reboot or a custom kernel module. schedkit provides image verification, container lifecycle management, and tools to check scheduler status.
 
 ## What's in this site
 
-The documentation is split into three sections.
-
-**Concepts** is for readers who want to understand the design before touching anything. It covers what `sched_ext` actually is and isn't, why we settled on OCI as the distribution format for schedulers, and how the various components fit together.
-
-**schedctl** documents the host-side command-line tool. If you have a single machine and you want to try out a different scheduler for the duration of a build, a game session, or a test run, this is what you're looking for.
-
-**sked** documents the Kubernetes operator. It uses cluster-scoped Scheduler resources to select node pools, verifies scheduler images, and reports DaemonSet rollout status. Start with the [overview](/docs/sked/overview) or [install it with Helm](./sked/installation).
-
-You can read the sections in order or jump straight to whichever tool you came here for. The Concepts pages are prerequisite-free; the project pages assume you've at least skimmed Concepts but try not to lean on it too hard.
+- **[Concepts](./concepts/sched-ext)** explains `sched_ext`, the OCI image format, and how the tools fit together.
+- **[schedctl](./schedctl/overview)** is the host CLI. Use it to check a Linux host, run a scheduler image with Podman or containerd, and inspect or stop the scheduler.
+- **[sked](./sked/overview)** is the Kubernetes operator. Use cluster-scoped Scheduler resources to select node pools, configure scheduler containers, and track DaemonSet rollouts. [Install it with Helm](./sked/installation).
 
 ## Audience
 
-We assume you're comfortable on a Linux command line, you've used containers (any runtime is fine), and for the sked sections that you've operated a Kubernetes cluster before. We don't assume you've written a scheduler. We don't even assume you know what `sched_ext` is — that's the very next page.
+The guides assume familiarity with Linux and containers. The sked guides also assume experience with Kubernetes. You do not need to have written a scheduler.
 
 ## Where to file things
 
-Documentation issues belong in the [docs repo](https://github.com/schedkit/docs/issues). Tool issues belong in the relevant project repo: [schedctl](https://github.com/schedkit/schedctl/issues) for the CLI, [sked](https://github.com/schedkit/sked/issues) for the operator. If you're not sure which it is, open it against schedctl and we'll move it if needed.
+Report documentation problems in the [docs repository](https://github.com/schedkit/docs/issues). Report tool bugs in [schedctl](https://github.com/schedkit/schedctl/issues) or [sked](https://github.com/schedkit/sked/issues).

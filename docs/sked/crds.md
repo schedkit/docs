@@ -46,7 +46,7 @@ This creates a DaemonSet named `scx-rusty` in the workload namespace, targeting 
 | `spec.imagePullSecrets` | `LocalObjectReference[]` | No | Named pull secrets in the **workload namespace**. Used by the kubelet, not by the controller's signature verifier. |
 | `spec.resources` | Kubernetes `ResourceRequirements` | No | Compute resources for the scheduler container, including requests and limits. These do not set CPU policy for other workloads. |
 
-No other scheduler configuration fields are defined. In particular, there is no `priority`, `imagePullPolicy`, `command`, `affinity`, `volumes`, `serviceAccountName`, probe configuration, or update strategy. Fields inherited from Kubernetes types may depend on cluster feature gates; sked does not provide a general-purpose pod template.
+The CRD does not expose `priority`, `imagePullPolicy`, `command`, `affinity`, `volumes`, `serviceAccountName`, probes, or an update strategy. Fields inherited from Kubernetes types may depend on cluster feature gates. There is no general-purpose pod template.
 
 ### Container configuration example
 
@@ -75,7 +75,7 @@ spec:
       memory: 128Mi
 ```
 
-The resource request is an example, not a sizing recommendation. Check the scheduler's own flags and memory requirements. Treat this as an alternative to the first example, not a second Scheduler for the same pool.
+Choose CPU and memory requests for your scheduler, and check its supported flags. Use this manifest instead of the first example; applying both targets the same nodes.
 
 ### Validation
 
@@ -100,7 +100,7 @@ The webhook handles creates and updates with `failurePolicy: Fail`. If it cannot
 | `status.nodes.unavailable` | DaemonSet `numberUnavailable`. |
 | `status.conditions` | Conditions keyed by `type`, with `status`, `reason`, `message`, `observedGeneration`, and `lastTransitionTime`. |
 
-There is no phase or per-node status list. Counts come from the DaemonSet, not a count of kernels with an attached scheduler. After a reconcile failure, image and node counts may still describe the last successful reconciliation; read the conditions too.
+There is no phase or per-node status list. The counts describe DaemonSet pods, not kernel attachment. After a reconcile failure, the image and counts may still reflect the last successful reconciliation. Read the conditions too.
 
 ### Conditions
 
@@ -140,7 +140,7 @@ For each node, the oldest matching Scheduler wins. Equal creation timestamps are
 - **Partial overlap:** the losing Scheduler excludes conflict nodes through required node affinity on `kubernetes.io/hostname`, and runs on the remaining nodes.
 - **Complete overlap:** the losing Scheduler's DaemonSet is deleted. Its node counts become zero, `resolvedImage` is cleared, and `Active=False`, `Ready=False`, and `Degraded=True` report `SchedulerConflict`.
 
-Arbitration compares node labels only. It does not consider tolerations, kernel support, image validity, or pod health. An older Scheduler that cannot run can still block a newer one. Use non-overlapping selectors rather than relying on age as a priority mechanism. Label changes trigger reassignment, but pod termination and startup are asynchronous; this is not an atomic handoff.
+Arbitration compares node labels only. It does not consider tolerations, kernel support, image validity, or pod health. An older Scheduler that cannot run can still block a newer one. Use non-overlapping selectors. Label changes trigger reassignment, but pods stop and start asynchronously; a scheduler handoff is not atomic.
 
 ## Migrating from `SchedExt`
 

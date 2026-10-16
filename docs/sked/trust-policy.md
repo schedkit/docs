@@ -18,7 +18,7 @@ Signatures must use:
 - Issuer: `https://token.actions.githubusercontent.com`
 - Identity: `https://github.com/schedkit/plumbing/.github/workflows/oci-build-publish.yml@refs/heads/main`
 
-There is no extra caller restriction by default; Kubernetes RBAC still applies. Restrict Scheduler writes to administrators trusted to change node-wide kernel behaviour. Admission restrictions are additional checks, not replacements for RBAC.
+The default policy adds no caller restrictions beyond Kubernetes RBAC. Grant Scheduler write access only to administrators trusted to change node-wide kernel behaviour. Custom identity restrictions apply in addition to RBAC.
 
 ## Custom policy
 
@@ -69,11 +69,11 @@ The verifier uses Cosign v3 signature bundles through OCI referrers. It resolves
 
 ## Policy updates and failure behaviour
 
-Each controller replica reloads the ConfigMap every 30 seconds. Allowlist, caller, and verification-enable changes are read from the refreshed policy. The Cosign verifier's issuer, identity, and trusted-root path are configured at process startup: **restart every controller replica after changing `cosign` settings**. Helm changes to a chart-managed policy trigger that restart through a pod-template checksum. Changes to an existing external ConfigMap do not.
+Each replica reloads the ConfigMap every 30 seconds. Changes to `allowedImages`, `allowedIdentities`, and `verifySignatures` take effect on reload. The Cosign verifier is configured at startup, so **restart every replica after changing `cosign` settings**. Helm restarts pods when a chart-managed policy changes, using a pod-template checksum. Editing an external ConfigMap does not trigger a restart.
 
 A malformed or unreadable policy leaves the last successfully loaded policy in place. At startup, load failures fall back to built-in defaults. A missing ConfigMap or an empty policy document also selects built-in defaults; it is not a deny-all configuration. Check controller logs after policy changes.
 
-Policy refresh does not itself enqueue every Scheduler. Caller and allowlist checks run at admission, not as continuous enforcement against existing resources. If verification fails during reconciliation, sked reports `ImageVerificationFailed` and retries without replacing an existing DaemonSet. Tightening policy does not automatically stop workloads already running; delete their Scheduler objects if they must be removed.
+Policy reloads do not trigger Scheduler reconciliation. Caller and allowlist checks apply only at admission. If signature verification fails during reconciliation, sked reports `ImageVerificationFailed` and retries, leaving any existing DaemonSet unchanged. To stop a running workload after tightening the policy, delete its Scheduler.
 
 ## Private and mirrored registries
 
@@ -85,4 +85,4 @@ There are three separate credential paths:
 
 For a mirror, copy the scheduler image and its signature/referrer artifacts, allow the mirrored repository in the policy, and keep the expected signing identity checks. Nodes and controllers both need access to the mirror.
 
-For an offline environment, also provision a trusted-root file and set `cosign.trustedRootPath`. sked caches trusted material for 24 hours. Mirroring only the image layers is insufficient for signature verification; test admission and reconciliation with external network access blocked before relying on an offline installation.
+For offline use, also mount a trusted-root file and set `cosign.trustedRootPath`. sked caches trusted material for 24 hours. Image layers alone are not enough for signature verification. Test admission and reconciliation with external network access blocked.

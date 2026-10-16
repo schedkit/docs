@@ -7,7 +7,7 @@ slug: /sked/overview
 
 # sked
 
-sked runs OCI-packaged `sched_ext` CPU schedulers on Kubernetes nodes. You declare an image and a set of node labels in a cluster-scoped `Scheduler` resource. The operator creates a privileged DaemonSet for it, verifies the image, and reports rollout status.
+sked runs OCI-packaged `sched_ext` CPU schedulers on Kubernetes nodes. A cluster-scoped `Scheduler` resource specifies the image and node labels to target. The operator verifies the image, creates a privileged DaemonSet, and reports rollout status.
 
 sked does not replace the Kubernetes scheduler. Kubernetes places pods on nodes; a `sched_ext` scheduler controls how a node's Linux kernel allocates CPU time to threads.
 
@@ -21,11 +21,11 @@ sked does not replace the Kubernetes scheduler. Kubernetes places pods on nodes;
 
 The [Helm chart](./installation) installs two controller replicas, leader election, admission webhooks, and a PodDisruptionBudget by default. Only the elected leader reconciles; both replicas serve webhooks.
 
-## Boundaries
+## Limitations
 
 There is no per-node sked agent, and sked does not invoke [schedctl](../schedctl/overview). The kubelet runs the scheduler image directly. schedctl and sked implement their own signature verification and use different trust-policy formats.
 
-sked does not inspect node kernels or confirm that a scheduler has attached. `Ready=True` means the DaemonSet rollout is complete, not that `/sys/kernel/sched_ext/state` is `enabled`. Check the kernel when validating a deployment.
+sked does not inspect node kernels or confirm that a scheduler has attached. `Ready=True` means the DaemonSet rollout is complete, not that `/sys/kernel/sched_ext/state` is `enabled`. [Check kernel state](./usage#verify-the-kernel-state) on each target node.
 
 Rollouts use Kubernetes' default DaemonSet update strategy. The CRD does not expose rollout tuning, scheduler priority, custom probes, or automatic rollback. Conflict handling covers Scheduler objects, not schedulers started outside sked.
 
@@ -35,6 +35,6 @@ Scheduler containers run privileged and change node-wide kernel behaviour. Restr
 
 1. [Install sked](./installation) with Helm or Kustomize.
 2. [Run a scheduler](./usage) on a labelled node pool.
-3. Consult the [CRD reference](./crds) and [trust policy](./trust-policy) for configuration.
+3. Configure it using the [CRD reference](./crds) and [trust policy](./trust-policy).
 
 [Architecture](./architecture) explains reconciliation and failure handling. [Development](./development) covers builds, tests, and generated manifests.

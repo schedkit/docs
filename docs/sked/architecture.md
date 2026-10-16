@@ -5,7 +5,7 @@ title: Architecture
 
 # Architecture
 
-sked is one manager binary built with controller-runtime. The process hosts a Scheduler reconciler, a validating admission webhook, a trust-policy refresher, metrics, and health endpoints. There is no node agent or controller-to-node protocol.
+sked runs a single manager binary built with controller-runtime. It contains the Scheduler reconciler, validating webhook, trust-policy refresher, metrics, and health endpoints. It communicates with nodes through Kubernetes, without a separate node agent.
 
 ```text
 kubectl create/update Scheduler
@@ -32,9 +32,9 @@ The kubelet runs the scheduler image directly. sked does not install or invoke s
 
 ## Processes and availability
 
-Helm and Kustomize deploy two manager replicas by default. The lease `b4c95cb3.schedkit.io` elects one reconciler; both replicas serve admission requests and refresh their trust policy. Extra replicas provide failover and webhook capacity, not parallel controller leaders.
+Helm and Kustomize deploy two manager replicas by default. They use the lease `b4c95cb3.schedkit.io` to elect a leader. Only the leader reconciles; both replicas serve admission requests and refresh their trust policy.
 
-The default PodDisruptionBudget keeps one controller available during voluntary evictions. A soft topology-spread rule prefers different nodes but permits co-location. Neither setting protects against all replicas sharing a failed node.
+The default PodDisruptionBudget requires one controller to remain available during voluntary evictions. A soft topology-spread rule prefers different nodes but allows replicas to share a node. If that node fails, both replicas can be lost.
 
 If all controllers stop, existing DaemonSets and scheduler pods keep running. Reconciliation and status updates stop, and Scheduler creates and updates fail because the validating webhook has `failurePolicy: Fail`. Deletion is not handled by the webhook; Kubernetes owner-reference garbage collection does not require sked to be running.
 
@@ -61,7 +61,7 @@ For each Scheduler, the reconciler:
 
 Conflict arbitration does not consider taints, tolerations, image validity, pod health, or schedulers started outside sked. A blocked older Scheduler does not automatically yield to a healthy newer one. See [overlapping selectors](./crds#overlapping-selectors).
 
-The controller replaces the generated DaemonSet spec on reconciliation. Manual changes to its pod template are not a supported configuration path. Owner references connect Scheduler to DaemonSet to pods; there is no custom cleanup finalizer.
+Reconciliation replaces the DaemonSet spec, overwriting manual changes to its pod template. Owner references connect Scheduler to DaemonSet to pods; there is no custom cleanup finalizer.
 
 ### Rollouts and status
 
@@ -69,7 +69,7 @@ A change to the generated pod template triggers Kubernetes' default DaemonSet ro
 
 `status.nodes` and the `Ready`, `Progressing`, and `Degraded` conditions come from DaemonSet status. `Active` records whether the Scheduler is fully blocked by conflicts. Partial conflicts can produce both `Ready=True` and `Degraded=True`: the remaining workload is ready, but some requested nodes belong to another Scheduler.
 
-There is no direct kernel observation. A container that stays alive after failing to attach can appear ready. Conversely, image-pull failures and crashes appear through pod availability, without a kernel-specific diagnosis. Use pod logs and node kernel state to establish the cause.
+sked does not inspect the kernel. A container that stays alive after failing to attach can appear ready. Image-pull failures and crashes affect pod availability, but status does not identify kernel errors. Check pod logs and node kernel state for the cause.
 
 Events for cluster-scoped Schedulers are stored in `default`, not the workload namespace. Normal reasons include `RolloutInProgress`, `DaemonSetReady`, and `NoNodesScheduled`; warnings include conflicts, verification and reconcile failures, unavailable nodes, and `StatusUpdateFailed`. State-change events are not repeated just because a pod count changes. Events expire; conditions describe the last recorded state.
 
@@ -88,7 +88,7 @@ The installed defaults differ from some standalone binary defaults:
 | HTTP/2 | Disabled | Disabled |
 | Logging | Slog JSON at info on stderr | Same |
 
-Both health endpoints use a ping check; they do not certify registry access, image verification, or node scheduler health.
+Both health endpoints use a ping check. They do not test registry access, image verification, or node scheduler health.
 
 Reconcile controls are exposed as flags and corresponding `controller` chart values:
 
@@ -101,7 +101,7 @@ Reconcile controls are exposed as flags and corresponding `controller` chart val
 | `--reconcile-retry-base-delay` | `1s` |
 | `--reconcile-retry-max-delay` | `5m` |
 
-The timeout bounds a reconcile attempt. Failed reconciles use exponential backoff plus a shared retry rate limit. These QPS and burst settings limit failed-reconcile requeues, not all Kubernetes API traffic.
+The timeout limits the duration of one reconcile attempt. Failed reconciles use exponential backoff plus a shared retry rate limit. These QPS and burst settings limit failed-reconcile requeues, not all Kubernetes API traffic.
 
 ## Failure handling
 

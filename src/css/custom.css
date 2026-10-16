@@ -1,18 +1,6 @@
 /**
- * schedkit docs — monochrome with one earned accent.
- *
- * The page is grey. There is exactly one colour, and it has exactly one job:
- * to mark the product, a pointer, the current position, or keyboard focus.
- *
- *   --sk-accent is allowed on: the logo, links, the active sidebar/TOC
- *   entry, and the focus ring. Nothing else.
- *
- * The test for adding more colour is not "would this look nicer" but "does
- * this encode something a reader could act on". Decoration loses.
- *
- * Structure is carried by type scale and 1px hairlines; mono is used only
- * for literal code, commands and check IDs. Dark and light are the same
- * design inverted, not two designs.
+ * schedkit: warm paper and charcoal, ink rules, and a blue accent.
+ * System fonts only. The homepage artwork shares these theme tokens.
  */
 
 /* ------------------------------------------------------------------ *
@@ -28,7 +16,7 @@
     'Liberation Mono', monospace;
 
   --ifm-font-size-base: 16.5px;
-  --ifm-line-height-base: 1.72;
+  --ifm-line-height-base: 1.65;
   --ifm-code-font-size: 87.5%;
   --ifm-heading-font-weight: 700;
   --ifm-heading-line-height: 1.12;
@@ -42,28 +30,26 @@
 }
 
 /* ------------------------------------------------------------------ *
- * Dark (default). True black, off-white text, achromatic hairlines.
+ * Dark (default). Charcoal surfaces and warm off-white text.
  * ------------------------------------------------------------------ */
 
 /*
  * Infima ships its whole dark palette on `html[data-theme=dark]`, which is
- * specificity (0,1,1) — it beats a bare `:root` or `[data-theme='light']`
- * selector. That silently overrode the page background (landing on #1b1b1d
- * slate instead of true black) plus ~30 other tokens. `:root[data-theme=...]`
- * is (0,2,0) and wins, so both theme blocks are scoped this way.
+ * specificity (0,1,1). Use `:root[data-theme=...]` at (0,2,0) so the custom
+ * palette wins in both themes.
  */
 :root,
 :root[data-theme='dark'] {
-  --sk-bg: #000000;
-  --sk-surface: #0e0e0e;
-  --sk-surface-2: #171717;
-  --sk-fg: #ededed;
-  --sk-fg-muted: #a8a8a8;
-  --sk-fg-subtle: #8a8a8a;
-  --sk-line: #2b2b2b;
-  --sk-line-strong: #4a4a4a;
-  /* The one colour. Logo, links, current position, focus. Nothing else. */
-  --sk-accent: #4c9be8;
+  --sk-bg: #161614;
+  --sk-surface: #1e1e1b;
+  --sk-surface-2: #262620;
+  --sk-fg: #eceae3;
+  --sk-fg-muted: #b7b4aa;
+  --sk-fg-subtle: #969287;
+  --sk-line: #393932;
+  --sk-line-strong: #69665e;
+  --sk-accent: #70acd6;
+  --sk-accent-tint: #203545;
 
   --ifm-background-color: var(--sk-bg);
   --ifm-background-surface-color: var(--sk-surface);
@@ -113,9 +99,9 @@
   --ifm-hover-overlay: rgba(255, 255, 255, 0.06);
   --ifm-breadcrumb-item-background-active: transparent;
 
-  --ifm-navbar-background-color: rgba(0, 0, 0, 0.88);
+  --ifm-navbar-background-color: var(--sk-bg);
   --ifm-navbar-shadow: none;
-  --ifm-footer-background-color: #000000;
+  --ifm-footer-background-color: var(--sk-bg);
 }
 
 /* ------------------------------------------------------------------ *
@@ -123,21 +109,21 @@
  * ------------------------------------------------------------------ */
 
 :root[data-theme='light'] {
-  --sk-bg: #ffffff;
-  --sk-surface: #ffffff;
-  --sk-surface-2: #f4f4f4;
-  --sk-fg: #111111;
-  --sk-fg-muted: #5c5c5c;
-  --sk-fg-subtle: #6e6e6e;
-  --sk-line: #e2e2e2;
-  --sk-line-strong: #c2c2c2;
-  /* Exactly the logo blue — 4.8:1 on white, so it clears AA for link text. */
-  --sk-accent: #2376b8;
+  --sk-bg: #faf9f5;
+  --sk-surface: #f1efe7;
+  --sk-surface-2: #eae7df;
+  --sk-fg: #20221f;
+  --sk-fg-muted: #55584f;
+  --sk-fg-subtle: #6a6e63;
+  --sk-line: #d5d3c9;
+  --sk-line-strong: #a29f93;
+  --sk-accent: #246b9a;
+  --sk-accent-tint: #e2edf3;
 
   --ifm-background-color: var(--sk-bg);
   --ifm-background-surface-color: var(--sk-surface);
   --ifm-font-color-base: var(--sk-fg);
-  --ifm-heading-color: #000000;
+  --ifm-heading-color: var(--sk-fg);
   --ifm-font-color-light: var(--sk-fg-muted);
   --ifm-font-color-lighter: var(--sk-fg-muted);
   --ifm-font-color-lightest: var(--sk-fg-subtle);
@@ -172,7 +158,7 @@
   --ifm-hover-overlay: rgba(0, 0, 0, 0.05);
   --ifm-breadcrumb-item-background-active: transparent;
 
-  --ifm-navbar-background-color: rgba(255, 255, 255, 0.9);
+  --ifm-navbar-background-color: var(--sk-bg);
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.07);
 }
 
@@ -196,11 +182,7 @@ body {
   color: var(--sk-bg);
 }
 
-/*
- * Focus is blue. A keyboard user must be able to tell focus apart from a
- * decorative state at a glance, and blue is the only thing on this page that
- * already means "actionable".
- */
+/* Visible outline for keyboard focus. */
 :focus-visible {
   outline: 2px solid var(--sk-accent);
   outline-offset: 3px;
@@ -236,14 +218,12 @@ body {
  * ------------------------------------------------------------------ */
 
 .navbar {
-  border-bottom: 1px solid var(--sk-line);
+  border-bottom: 2px solid var(--sk-fg);
   padding-inline: 0.75rem;
-  backdrop-filter: saturate(120%) blur(10px);
-  -webkit-backdrop-filter: saturate(120%) blur(10px);
 }
 
 .navbar__inner {
-  max-width: 1440px;
+  max-width: 72rem;
   margin-inline: auto;
 }
 
@@ -254,7 +234,6 @@ body {
 .navbar__logo {
   height: 22px;
   width: auto;
-  /* Full saturation: the logo is the one surface that earns the accent. */
 }
 
 .navbar__title {
@@ -365,11 +344,7 @@ body {
   text-decoration: none;
 }
 
-/*
- * Active sidebar entry: blue, no fill. "You are here" is a pointer, so it
- * gets the pointer colour rather than a chip — a background fill would be the
- * one place on the page where the accent stops meaning anything.
- */
+/* Mark the current page with an accent border and text, without a fill. */
 .menu__link--active:not(.menu__link--sublist) {
   background: transparent;
   color: var(--sk-accent);
@@ -407,15 +382,15 @@ body {
 /* Docusaurus wraps the title in <header><h1>, so cover both shapes. */
 .theme-doc-markdown header > h1,
 .theme-doc-markdown > h1 {
-  font-size: 2.4rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
   margin-bottom: 1.75rem;
 }
 
 .theme-doc-markdown > h2 {
-  font-size: 1.55rem;
+  font-size: 1.75rem;
   letter-spacing: -0.028em;
   margin-top: 3rem;
   padding-bottom: 0.5rem;
@@ -765,6 +740,14 @@ code {
   background: var(--sk-surface-2);
 }
 
+@media screen and (max-width: 996px) {
+  .theme-doc-markdown table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * Admonitions — monochrome, never colour-only
  * ------------------------------------------------------------------ */
@@ -976,7 +959,7 @@ code {
  * ------------------------------------------------------------------ */
 
 .footer {
-  border-top: 1px solid var(--sk-line);
+  border-top: 2px solid var(--sk-fg);
   margin-top: 4rem;
   background: var(--sk-bg);
 }
