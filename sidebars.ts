@@ -36,6 +36,7 @@ const sidebars: SidebarsConfig = {
         'sked/overview',
         'sked/installation',
         'sked/crds',
+        'sked/trust-policy',
         'sked/usage',
         'sked/architecture',
         'sked/development',
