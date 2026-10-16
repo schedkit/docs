@@ -5,7 +5,7 @@ title: Usage
 
 # Usage
 
-This walkthrough assumes sked is [installed](./installation) as release `sked` in `sked-system`, using the default trust policy and workload namespace. Adjust namespace arguments if your scheduler DaemonSets run elsewhere. Scheduler resources themselves are cluster-scoped.
+These commands assume sked is [installed](./installation) as release `sked` in `sked-system`, with the default trust policy and workload namespace. Change the namespace arguments if your DaemonSets run elsewhere. Scheduler resources are cluster-scoped.
 
 ## Check the controller and nodes
 
@@ -24,7 +24,7 @@ ls /sys/kernel/sched_ext
 cat /sys/kernel/sched_ext/state
 ```
 
-The directory's presence is a first check, not a guarantee that a particular scheduler is compatible. Stop schedulers managed outside sked before targeting those nodes. sked cannot arbitrate against schedctl or a manually started scheduler.
+Check the scheduler's kernel requirements as well; the directory alone does not establish compatibility. Stop schedulers managed outside sked before targeting those nodes. sked cannot detect conflicts with schedctl or manually started schedulers.
 
 Label the nodes you have checked, replacing the example node name:
 
@@ -32,7 +32,7 @@ Label the nodes you have checked, replacing the example node name:
 kubectl label node worker-1 schedkit.io/pool=batch
 ```
 
-Repeat for the other nodes in the pool. A label does not prove kernel support; it is your declaration that those nodes are suitable.
+Repeat for the other nodes you have checked.
 
 ## Create a Scheduler
 
@@ -82,7 +82,7 @@ kubectl exec -n sked-system <pod-name> -c scx -- cat /sys/kernel/sched_ext/state
 kubectl exec -n sked-system <pod-name> -c scx -- cat /sys/kernel/sched_ext/root/ops
 ```
 
-If not, use a node shell. A privileged container is not a promise that the image includes debugging tools. For attachment failures, check the scheduler logs and node kernel logs:
+Otherwise, run the commands from a node shell. For attachment failures, check the scheduler logs and node kernel logs:
 
 ```bash
 kubectl logs -n sked-system <pod-name> -c scx
@@ -100,7 +100,7 @@ kubectl edit scheduler scx-rusty
 
 Changing the image, arguments, environment, or other pod-template fields causes a DaemonSet rolling update. sked does not expose rollout tuning or automatic rollback. To revert, restore the previous Scheduler spec, preferably with its recorded image digest.
 
-After an update, compare `status.observedGeneration` and each condition's `observedGeneration` with `metadata.generation`. A condition from an earlier generation may still be visible immediately after applying a change.
+After an update, compare `status.observedGeneration` and each condition's `observedGeneration` with `metadata.generation`. Until the controller processes the change, conditions may describe the previous spec.
 
 ### Tainted nodes
 

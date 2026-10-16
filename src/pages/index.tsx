@@ -1,220 +1,203 @@
 import type {ReactNode} from 'react';
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
+import SchedulerShipment from '@site/static/img/scheduler-shipment.svg';
 
 import styles from './index.module.css';
-
-/* ------------------------------------------------------------------ *
- * Hero
- * ------------------------------------------------------------------ */
-
-const DOCTOR_TRANSCRIPT: string[] = [
-  '$ sudo schedctl doctor',
-  '',
-  'schedctl doctor — host readiness check',
-  '',
-  '[PASS]  kernel.version             7.1.8-1-default',
-  '[PASS]  kernel.sched_ext           /sys/kernel/sched_ext is present',
-  '[PASS]  kernel.btf                 /sys/kernel/btf/vmlinux (5993874 bytes)',
-  '[PASS]  kernel.config              all required CONFIG_* flags enabled',
-  '[PASS]  caps.cap_bpf               CapEff bit 39 set',
-  '[PASS]  caps.cap_sys_admin         CapEff bit 21 set',
-  '[PASS]  caps.cap_perfmon           CapEff bit 38 set',
-  '[PASS]  runtime.podman_socket      /run/podman/podman.sock',
-  '[WARN]  runtime.containerd_socket  none reachable: /run/containerd/containerd.sock',
-  '[PASS]  runtime.any                /run/podman/podman.sock',
-  '',
-  'Remediation:',
-  '  - runtime.containerd_socket: start containerd (e.g. `systemctl enable --now containerd`) or rely on Podman',
-  '',
-  'Summary: 9 passed, 1 failed, 0 skipped (0 blocking)',
-];
-
-/** Single right-aligned button, old-school Linux titlebar. Not macOS dots. */
-function Transcript() {
-  return (
-    <figure className={styles.transcript}>
-      <div className={styles.transcriptBar}>
-        <figcaption className={styles.transcriptTitle}>
-          schedctl doctor
-        </figcaption>
-        <span className={styles.transcriptButton} aria-hidden="true" />
-      </div>
-      <pre className={styles.transcriptBody}>
-        <code>{DOCTOR_TRANSCRIPT.join('\n')}</code>
-      </pre>
-    </figure>
-  );
-}
 
 function Hero() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={styles.hero}>
-      <div className="container">
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>Linux sched_ext · OCI images</p>
         <Heading as="h1" className={styles.wordmark}>
           {siteConfig.title}
         </Heading>
-        <p className={styles.tagline}>{siteConfig.tagline}</p>
-
-        <div className={styles.heroLower}>
-          <div className={styles.heroProse}>
-            <p>
-              Linux 6.12 made the CPU scheduler a BPF program the kernel loads,
-              verifies and unloads on demand. No custom kernel, no module, no
-              maintenance window.
-            </p>
-            <p>
-              schedkit handles everything around that: shipping a scheduler as
-              an OCI image, checking whether a host can run one, reporting what
-              is actually attached, and doing the same across a cluster.
-            </p>
-            <div className={styles.heroActions}>
-              <Link className="button button--primary button--lg" to="/docs/intro">
-                Introduction
-              </Link>
-              <Link
-                className="button button--outline button--lg"
-                to="/docs/concepts/sched-ext"
-              >
-                What is sched_ext?
-              </Link>
-            </div>
-          </div>
-          <div className={styles.heroAside}>
-            <Transcript />
-          </div>
+        <p className={styles.tagline}>
+          CPU schedulers,<br />
+          <span>packaged as OCI images.</span>
+        </p>
+        <p className={styles.heroDescription}>
+          Use schedctl on a Linux host or sked in Kubernetes to verify
+          and run sched_ext scheduler images.
+        </p>
+        <div className={styles.heroActions}>
+          <Link className="button button--primary button--lg" to="/docs/intro">
+            Read the docs <span aria-hidden="true">↗</span>
+          </Link>
+          <Link className={styles.textLink} to="https://github.com/schedkit">
+            View the source
+          </Link>
         </div>
       </div>
+      <figure className={styles.artwork}>
+        <SchedulerShipment className={styles.schematic} />
+        <figcaption>
+          The scheduler arrives as an OCI image and attaches to the host
+          kernel through <code>sched_ext</code>.
+        </figcaption>
+      </figure>
     </header>
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Tools
- * ------------------------------------------------------------------ */
+type Tool = {
+  name: string;
+  scope: string;
+  alpha?: boolean;
+  body: string;
+  prerequisite: ReactNode;
+  commands: string[];
+  href: string;
+};
 
-const TOOLS = [
+const TOOLS: Tool[] = [
   {
     name: 'schedctl',
-    line: 'The host-side CLI.',
-    alpha: false,
-    body: 'Verifies, pulls and runs an OCI-packaged sched_ext scheduler on a single machine, with a kernel preflight built in. Reaches for one scheduler for the length of a build, a game session, or a test run.',
-    install: ['sudo zypper in schedctl'],
-    href: '/docs/schedctl/overview',
+    scope: 'On a host',
+    body: 'Run scheduler images with Podman or containerd. schedctl verifies signatures, checks host compatibility, reports which scheduler is attached, and starts and stops scheduler containers.',
+    prerequisite: <>Install on openSUSE, or see the <Link to="/docs/schedctl/installation">other installation options</Link>.</>,
+    commands: ['sudo zypper in schedctl', 'sudo schedctl doctor'],
+    href: '/docs/schedctl/usage',
   },
   {
     name: 'sked',
-    line: 'The Kubernetes operator.',
+    scope: 'In Kubernetes',
     alpha: true,
-    body: 'A cluster-scoped Scheduler resource selects an OCI scheduler image and a node pool. sked verifies the image and manages a privileged DaemonSet on those nodes. No schedctl installation is needed on the nodes.',
-    prerequisite: (
-      <>
-        Install <Link to="https://cert-manager.io/docs/installation/">cert-manager</Link> first,
-        or <Link to="/docs/sked/installation#webhook-certificates">supply a webhook certificate</Link>.
-      </>
-    ),
-    install: [
+    body: 'Create a Scheduler resource for a node pool. sked verifies the image, creates a privileged DaemonSet, and reports rollout status. It does not require schedctl on the nodes.',
+    prerequisite: <>Install <Link to="https://cert-manager.io/docs/installation/">cert-manager</Link> first, or <Link to="/docs/sked/installation#webhook-certificates">supply a webhook certificate</Link>.</>,
+    commands: [
       'helm repo add schedkit https://charts.schedkit.io',
       'helm repo update',
       'helm install sked schedkit/sked \\\n  --namespace sked-system --create-namespace \\\n  --wait --timeout 5m',
     ],
-    href: '/docs/sked/overview',
+    href: '/docs/sked/usage',
   },
 ];
 
 function Tools() {
   return (
-    <section className={styles.section}>
-      <div className="container">
-        <Heading as="h2" className={styles.sectionTitle}>
-          Two tools
-        </Heading>
-        <dl className={styles.tools}>
-          {TOOLS.map((tool) => (
-            <div key={tool.name} className={styles.tool}>
-              <dt className={styles.toolHead}>
-                <span className={styles.toolNameRow}>
-                  <span className={styles.toolName}>{tool.name}</span>
-                  {tool.alpha && (
-                    <span
-                      className={styles.toolBadge}
-                      title="Alpha: pre-production, not recommended for production use"
-                    >
-                      alpha
-                    </span>
-                  )}
+    <section className={styles.section} aria-labelledby="tools-title">
+      <div className={styles.sectionHead}>
+        <p className={styles.eyebrow}>01 / Deployment</p>
+        <Heading as="h2" id="tools-title">Run on a host or in Kubernetes</Heading>
+      </div>
+      <div className={styles.tools}>
+        {TOOLS.map((tool) => (
+          <article key={tool.name} className={styles.tool}>
+            <p className={styles.toolScope}>{tool.scope}</p>
+            <div className={styles.toolNameRow}>
+              <Heading as="h3" className={styles.toolName}>{tool.name}</Heading>
+              {tool.alpha && (
+                <span className={styles.toolBadge} title="Alpha: not recommended for production use">
+                  alpha
                 </span>
-                <span className={styles.toolLine}>{tool.line}</span>
-              </dt>
-              <dd className={styles.toolBody}>
-                <p>{tool.body}</p>
-                {tool.prerequisite && <p>{tool.prerequisite}</p>}
-                <pre className={styles.install}>
-                  <code>
-                    {tool.install.map((command, index) => (
-                      <span key={command}>
-                        {index > 0 && '\n'}
-                        <span className={styles.prompt} aria-hidden="true">$ </span>
-                        {command}
-                      </span>
-                    ))}
-                  </code>
-                </pre>
-                <Link to={tool.href} className={styles.toolLink}>
-                  {tool.name} documentation
-                </Link>
-              </dd>
+              )}
             </div>
-          ))}
-        </dl>
+            <p className={styles.toolDescription}>{tool.body}</p>
+            <p className={styles.installNote}>{tool.prerequisite}</p>
+            <pre className={styles.install} tabIndex={0} aria-label={`${tool.name} installation commands`}>
+              <code>
+                {tool.commands.map((command, index) => (
+                  <span key={command}>
+                    {index > 0 && '\n'}
+                    <span className={styles.prompt} aria-hidden="true">$ </span>
+                    {command}
+                  </span>
+                ))}
+              </code>
+            </pre>
+            <Link to={tool.href} className={styles.textLink}>
+              Use {tool.name} <span aria-hidden="true">↗</span>
+            </Link>
+          </article>
+        ))}
       </div>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Requirements
- * ------------------------------------------------------------------ */
+const STEPS = [
+  {
+    name: 'Package',
+    detail: 'An OCI image contains the scheduler binary and its dependencies. Publish it to a container registry.',
+    label: 'OCI image',
+    href: '/docs/concepts/oci-schedulers',
+  },
+  {
+    name: 'Run',
+    detail: 'schedctl or sked verifies the image signature by default. The container runtime pulls the image and starts the scheduler.',
+    label: 'Container runtime',
+    href: '/docs/concepts/architecture',
+  },
+  {
+    name: 'Schedule',
+    detail: 'The scheduler attaches through sched_ext and allocates CPU time to threads. When it detaches, the kernel returns to its default policy.',
+    label: 'Linux kernel',
+    href: '/docs/concepts/sched-ext',
+  },
+];
 
-/* Check IDs are the real ones from `schedctl doctor` (see commands.md). */
-const REQUIREMENTS: Array<[string, string, string]> = [
-  ['kernel.version', 'Linux 6.12 or later', 'The release that shipped sched_ext upstream.'],
-  ['kernel.config', 'CONFIG_SCHED_CLASS_EXT=y', 'With the CONFIG_BPF* flags and CONFIG_DEBUG_INFO_BTF for CO-RE programs.'],
-  ['caps.*', 'CAP_BPF, CAP_SYS_ADMIN, CAP_PERFMON', 'Verified by schedctl doctor. Under sked each scheduler runs in a privileged DaemonSet instead.'],
-  ['runtime.any', 'A reachable runtime socket', 'Podman or containerd, so the scheduler can be pulled as an OCI image.'],
+function Delivery() {
+  return (
+    <section className={styles.section} aria-labelledby="delivery-title">
+      <div className={styles.sectionHead}>
+        <p className={styles.eyebrow}>02 / How it works</p>
+        <Heading as="h2" id="delivery-title">From registry to kernel</Heading>
+      </div>
+      <ol className={styles.steps}>
+        {STEPS.map((step, index) => (
+          <li key={step.name}>
+            <p className={styles.stepLabel}>
+              <span>{String(index + 1).padStart(2, '0')}</span> {step.label}
+            </p>
+            <Heading as="h3">{step.name}</Heading>
+            <p>{step.detail}</p>
+            <Link to={step.href} className={styles.textLink}>
+              {step.label} <span aria-hidden="true">↗</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+const REQUIREMENTS = [
+  ['Kernel', 'Linux 6.12 or later with CONFIG_SCHED_CLASS_EXT=y, BPF support, and BTF.'],
+  ['Runtime', 'Podman or containerd on a host; the node’s container runtime in Kubernetes.'],
+  ['Permissions', 'Access to load BPF programs. sked runs scheduler containers privileged.'],
+  ['Compatibility', 'A scheduler image built for the host’s architecture and kernel.'],
 ];
 
 function Requirements() {
   return (
-    <section className={styles.section}>
-      <div className="container">
-        <Heading as="h2" className={styles.sectionTitle}>
-          What a host needs
-        </Heading>
-        <p className={styles.sectionLede}>
-          Each of these is a check ID that <code>schedctl doctor</code> reports
-          by name, and exits non-zero on when one fails.
-        </p>
-        <table className={styles.reqTable}>
-          <thead>
-            <tr>
-              <th scope="col">Check</th>
-              <th scope="col">Requires</th>
-              <th scope="col">Notes</th>
-            </tr>
-          </thead>
+    <section className={styles.section} aria-labelledby="requirements-title">
+      <div className={styles.requirements}>
+        <div className={styles.sectionHead}>
+          <p className={styles.eyebrow}>03 / Before you run</p>
+          <Heading as="h2" id="requirements-title">Check the host</Heading>
+          <p className={styles.sectionLede}>
+            Run <code>schedctl doctor</code> to check the kernel, capabilities,
+            and container runtime. Check the scheduler’s own requirements too.
+          </p>
+          <p className={styles.sectionNote}>
+            sked reports DaemonSet readiness but does not check kernel
+            attachment. Verify the running scheduler on each node.
+          </p>
+          <Link to="/docs/schedctl/troubleshooting" className={styles.textLink}>
+            Check host compatibility <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
+        <table className={styles.reqTable} aria-label="Requirements for running a scheduler">
           <tbody>
-            {REQUIREMENTS.map(([id, needs, note]) => (
-              <tr key={id}>
-                <td>
-                  <code>{id}</code>
-                </td>
-                <td>{needs}</td>
-                <td className={styles.reqNote}>{note}</td>
+            {REQUIREMENTS.map(([name, detail]) => (
+              <tr key={name}>
+                <th scope="row">{name}</th>
+                <td>{detail}</td>
               </tr>
             ))}
           </tbody>
@@ -224,69 +207,45 @@ function Requirements() {
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Where to start
- * ------------------------------------------------------------------ */
-
-const ROUTES: Array<[string, string, string]> = [
-  [
-    'Understand the design first',
-    'What sched_ext is and is not, and why OCI ended up as the distribution format.',
-    '/docs/concepts/sched-ext',
-  ],
-  [
-    'One machine, right now',
-    'Install schedctl, run the preflight, attach a scheduler.',
-    '/docs/schedctl/installation',
-  ],
-  [
-    'Nodes already in Kubernetes',
-    'Install sked with Helm and declare a Scheduler resource.',
-    '/docs/sked/installation',
-  ],
-  [
-    'Package your own scheduler',
-    'The image layout that schedctl and sked both expect.',
-    '/docs/schedctl/packaging-a-scheduler',
-  ],
+const ROUTES = [
+  ['Understand sched_ext', 'How BPF-based CPU scheduling works in Linux.', '/docs/concepts/sched-ext'],
+  ['Run on one machine', 'Install schedctl and try a scheduler.', '/docs/schedctl/installation'],
+  ['Deploy to a node pool', 'Install sked with Helm and create a Scheduler.', '/docs/sked/installation'],
+  ['Package a scheduler', 'Build an image that both tools can run.', '/docs/schedctl/packaging-a-scheduler'],
 ];
 
 function Routes() {
   return (
-    <section className={styles.section}>
-      <div className="container">
-        <Heading as="h2" className={styles.sectionTitle}>
-          Where to start
-        </Heading>
-        <ul className={styles.routes}>
-          {ROUTES.map(([when, what, href]) => (
-            <li key={href}>
-              <Link to={href} className={styles.route}>
-                <span className={styles.routeWhen}>{when}</span>
-                <span className={styles.routeWhat}>{what}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <section className={styles.section} aria-labelledby="routes-title">
+      <div className={styles.sectionHead}>
+        <p className={styles.eyebrow}>04 / Documentation</p>
+        <Heading as="h2" id="routes-title">Where to start</Heading>
       </div>
+      <ul className={styles.routes}>
+        {ROUTES.map(([title, detail, href]) => (
+          <li key={href}>
+            <Link to={href} className={styles.route}>
+              <span className={styles.routeTitle}>{title}</span>
+              <span className={styles.routeDetail}>{detail}</span>
+              <span className={styles.routeArrow} aria-hidden="true">↗</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Page
- * ------------------------------------------------------------------ */
-
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={siteConfig.title}
-      description="OCI-packaged sched_ext schedulers, plus the tools to run them anywhere"
+      title="Linux CPU schedulers packaged as OCI images"
+      description="Run sched_ext CPU scheduler images on Linux hosts with schedctl or on Kubernetes node pools with sked."
     >
-      <Hero />
-      <main>
+      <main className={styles.home}>
+        <Hero />
         <Tools />
+        <Delivery />
         <Requirements />
         <Routes />
       </main>

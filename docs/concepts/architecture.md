@@ -6,7 +6,7 @@ sidebar_label: Architecture
 
 # Architecture overview
 
-schedkit has two tools for running OCI-packaged `sched_ext` CPU schedulers: schedctl on a host, and sked in Kubernetes. Both run scheduler images, but they manage them independently.
+schedkit runs OCI-packaged `sched_ext` CPU schedulers with two tools: schedctl on a host and sked in Kubernetes.
 
 ## On one host: schedctl
 
@@ -16,11 +16,11 @@ schedctl talks to a local Podman or containerd runtime. It verifies scheduler im
 user -> schedctl -> Podman/containerd -> scheduler binary -> sched_ext
 ```
 
-The CLI does not require Kubernetes. Use it for a workstation, a standalone server, or host management driven by scripts. See [schedctl](../schedctl/overview).
+Use [schedctl](../schedctl/overview) on a workstation or server, directly or from scripts. It does not require Kubernetes.
 
 ## In Kubernetes: sked
 
-sked watches cluster-scoped `Scheduler` resources. Each names a scheduler image and can select a node pool, tolerate taints, and configure container arguments, environment, pull secrets, and resources.
+sked watches cluster-scoped `Scheduler` resources that specify an image, node selection, and container settings.
 
 ```text
 cluster administrator
@@ -49,7 +49,7 @@ See [sked architecture](../sked/architecture) for the reconcile loop and failure
 
 ## What the tools share
 
-The common input is an OCI-packaged scheduler, not a controller-to-agent protocol. sked neither imports schedctl nor shells out to it. Both implement signature verification, but their trust-policy formats and defaults differ. Configuring one tool does not configure the other.
+Both tools accept OCI scheduler images. sked does not import or invoke schedctl; each tool has its own signature verifier, trust-policy format, and defaults.
 
 Do not let both manage a scheduler on the same node. sked's conflict handling only sees Scheduler resources; it cannot account for a scheduler started by schedctl or another host process.
 
