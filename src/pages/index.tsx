@@ -103,15 +103,25 @@ const TOOLS = [
     line: 'The host-side CLI.',
     alpha: false,
     body: 'Verifies, pulls and runs an OCI-packaged sched_ext scheduler on a single machine, with a kernel preflight built in. Reaches for one scheduler for the length of a build, a game session, or a test run.',
-    install: 'sudo zypper in schedctl',
+    install: ['sudo zypper in schedctl'],
     href: '/docs/schedctl/overview',
   },
   {
     name: 'sked',
     line: 'The Kubernetes operator.',
     alpha: true,
-    body: 'A SchedExt resource names the OCI scheduler image; sked reconciles it into a privileged DaemonSet on every node it should run on. The cluster-native path — schedctl is not installed on the nodes.',
-    install: 'make deploy IMG=ghcr.io/schedkit/sked:latest',
+    body: 'A cluster-scoped Scheduler resource selects an OCI scheduler image and a node pool. sked verifies the image and manages a privileged DaemonSet on those nodes. No schedctl installation is needed on the nodes.',
+    prerequisite: (
+      <>
+        Install <Link to="https://cert-manager.io/docs/installation/">cert-manager</Link> first,
+        or <Link to="/docs/sked/installation#webhook-certificates">supply a webhook certificate</Link>.
+      </>
+    ),
+    install: [
+      'helm repo add schedkit https://charts.schedkit.io',
+      'helm repo update',
+      'helm install sked schedkit/sked \\\n  --namespace sked-system --create-namespace \\\n  --wait --timeout 5m',
+    ],
     href: '/docs/sked/overview',
   },
 ];
@@ -142,10 +152,16 @@ function Tools() {
               </dt>
               <dd className={styles.toolBody}>
                 <p>{tool.body}</p>
+                {tool.prerequisite && <p>{tool.prerequisite}</p>}
                 <pre className={styles.install}>
                   <code>
-                    <span className={styles.prompt}>$ </span>
-                    {tool.install}
+                    {tool.install.map((command, index) => (
+                      <span key={command}>
+                        {index > 0 && '\n'}
+                        <span className={styles.prompt} aria-hidden="true">$ </span>
+                        {command}
+                      </span>
+                    ))}
                   </code>
                 </pre>
                 <Link to={tool.href} className={styles.toolLink}>
@@ -225,7 +241,7 @@ const ROUTES: Array<[string, string, string]> = [
   ],
   [
     'Nodes already in Kubernetes',
-    'Install sked and declare a SchedExt resource.',
+    'Install sked with Helm and declare a Scheduler resource.',
     '/docs/sked/installation',
   ],
   [

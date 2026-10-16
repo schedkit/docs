@@ -204,6 +204,7 @@
 
 .install {
   margin: 0;
+  max-width: 100%;
   padding: 0.6rem 0.85rem;
   border: 1px solid var(--sk-line);
   background: var(--sk-surface);
@@ -217,7 +218,7 @@
   border: 0;
   padding: 0;
   font-size: inherit;
-  white-space: nowrap;
+  white-space: pre;
   color: var(--sk-fg);
 }
 
